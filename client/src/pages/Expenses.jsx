@@ -3,6 +3,7 @@ import api from '../services/api';
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
     category: '',
     amount: '',
@@ -13,14 +14,22 @@ export default function Expenses() {
   const [success, setSuccess] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const categories = [
-    'Fuel', 'Caps', 'Bottles', 'Nylon', 'Filters', 'AEDC',
-    'Labels', 'Salaries', 'Maintenance', 'Misc',
-  ];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     fetchExpenses();
   }, [filterStatus]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/expenses/categories');
+      setCategories(response.data.data);
+    } catch (err) {
+      console.error('Failed to load expense categories', err);
+    }
+  };
 
   const fetchExpenses = async () => {
     try {

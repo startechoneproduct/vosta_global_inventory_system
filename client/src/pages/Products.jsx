@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useStore } from '../context/StoreContext';
 
-const UNIT_OPTIONS = ['pack', 'bag', 'crate', 'bottle', 'bird', 'unit'];
+const FARM_UNIT_OPTIONS = ['crate', 'bird'];
+const FOUNTAIN_UNIT_OPTIONS = ['pack', 'bag', 'crate', 'bottle', 'unit'];
+const BIRD_CATEGORY_OPTIONS = ['layer', 'broiler'];
 
-const EMPTY_FORM = {
-  sku: '',
-  name: '',
-  description: '',
-  unitName: 'pack',
-  category: '',
-  currentStock: '',
-  minThreshold: '20',
-  pricePerUnit: '',
-  costPerUnit: '',
-};
+function emptyForm(defaultUnit) {
+  return {
+    name: '',
+    description: '',
+    unitName: defaultUnit,
+    category: '',
+    currentStock: '',
+    minThreshold: '20',
+    pricePerUnit: '',
+    costPerUnit: '',
+  };
+}
 
 function formatCurrency(amountInKobo = 0) {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format((amountInKobo || 0) / 100);
@@ -22,10 +26,13 @@ function formatCurrency(amountInKobo = 0) {
 export default function Products({ user }) {
   const canManage = ['owner', 'general_manager', 'accountant'].includes(user?.role);
   const canEditPrice = ['owner', 'general_manager'].includes(user?.role);
+  const { activeStore } = useStore();
+  const isFarm = activeStore?.type === 'farm';
+  const unitOptions = isFarm ? FARM_UNIT_OPTIONS : FOUNTAIN_UNIT_OPTIONS;
 
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(() => emptyForm(unitOptions[0]));
   const [editingId, setEditingId] = useState(null);
   const [priceEditId, setPriceEditId] = useState(null);
   const [priceDraft, setPriceDraft] = useState('');
@@ -47,14 +54,13 @@ export default function Products({ user }) {
   };
 
   const resetForm = () => {
-    setForm(EMPTY_FORM);
+    setForm(emptyForm(unitOptions[0]));
     setEditingId(null);
     setShowForm(false);
   };
 
   const startEdit = (product) => {
     setForm({
-      sku: product.sku,
       name: product.name,
       description: product.description || '',
       unitName: product.unitName,
@@ -75,8 +81,8 @@ export default function Products({ user }) {
     setSuccess('');
 
     try {
-      if (!form.sku || !form.name || !form.pricePerUnit) {
-        setError('SKU, name and price are required');
+      if (!form.name || !form.pricePerUnit) {
+        setError('Name and price are required');
         setLoading(false);
         return;
       }
@@ -95,8 +101,8 @@ export default function Products({ user }) {
         });
         setSuccess('Product updated');
       } else {
+        // CHANGED: sku is never sent - the backend generates it automatically.
         await api.post('/products', {
-          sku: form.sku,
           name: form.name,
           description: form.description,
           unitName: form.unitName,
@@ -181,35 +187,42 @@ export default function Products({ user }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-              <input
-                className="input-field"
-                value={form.sku}
-                onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                disabled={!!editingId}
-                placeholder="e.g. SKU-SF-004"
-              />
-              {editingId && <p className="text-xs text-gray-400 mt-1">SKU can't be changed after creation</p>}
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
               <input className="input-field" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Bottled Water 50cl Pack" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-              <select className="input-field" value={form.unitName} onChange={(e) => setForm({ ...form, unitName: e.target.value })}>
-                {UNIT_OPTIONS.map((u) => (
+              <select
+                className="input-field"
+                value={form.unitName}
+                onChange={(e) => {
+                  const unitName = e.target.value;
+                  const category = unitName === 'bird' ? (form.category || BIRD_CATEGORY_OPTIONS[0]) : '';
+                  setForm({ ...form, unitName, category });
+                }}
+              >
+                {unitOptions.map((u) => (
                   <option key={u} value={u}>{u}</option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category (optional)</label>
-              <input className="input-field" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. layer, broiler" />
-            </div>
+            {form.unitName === 'bird' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bird Category</label>
+                <select className="input-field" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                  {BIRD_CATEGORY_OPTIONS.map((c) => (
+                    <option key={c} value={c}>{c[0].toUpperCase() + c.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category (optional)</label>
+                <input className="input-field" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. size grade" />
+              </div>
+            )}
 
             {!editingId && (
               <div>
@@ -307,7 +320,8 @@ export default function Products({ user }) {
                   return (
                     <tr key={p._id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-6 py-3 font-medium text-gray-900">{p.name}</td>
-                      <td className="px-6 py-3 text-sm text-gray-500">{p.sku}</td>
+                      {/* SKU is read-only - it's generated by the server, never entered by anyone */}
+                      <td className="px-6 py-3 text-sm text-gray-400 font-mono">{p.sku}</td>
                       <td className="px-6 py-3 text-sm text-gray-600">{p.currentStock} {p.unitName}(s)</td>
                       <td className="px-6 py-3 text-sm">
                         {priceEditId === p._id ? (

@@ -1,13 +1,13 @@
 const express = require('express');
-const { verifyToken } = require('../middleware/auth.js');
+const { verifyToken, resolveStoreScope } = require('../middleware/auth.js');
 const { Attendance } = require('../models/index.js');
 
 const router = express.Router();
 
 // ============ CLOCK IN ============
-router.post('/clock-in', verifyToken, async (req, res, next) => {
+router.post('/clock-in', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
-    const storeId = req.body.storeId || req.user.storeId;
+    const storeId = req.storeId;
 
     // Check if already clocked in
     const existingLog = await Attendance.findOne({
@@ -74,13 +74,11 @@ router.post('/clock-out', verifyToken, async (req, res, next) => {
 });
 
 // ============ GET ATTENDANCE ============
-router.get('/', verifyToken, async (req, res, next) => {
+router.get('/', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
     const { userId, startDate, endDate } = req.query;
-    const storeId = req.query.storeId || req.user.storeId;
 
-    let query = {};
-    if (storeId) query.storeId = storeId;
+    let query = { storeId: req.storeId };
     if (userId) query.userId = userId;
 
     if (startDate || endDate) {

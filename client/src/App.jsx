@@ -17,6 +17,7 @@ import DriverTracking from './pages/DriverTracking';
 import Returns from './pages/Returns';
 import StaffManagement from './pages/StaffManagement';
 import Products from './pages/Products';
+import ChangePassword from './pages/ChangePassword';
 
 // Layout
 import MainLayout from './components/Layout/MainLayout';
@@ -56,6 +57,12 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  // Staff accounts created by a GM start with a generated password
+  // (see staffRoute.js) - block the rest of the app until they set their own.
+  if (user?.mustChangePassword) {
+    return <ChangePassword onSuccess={() => setUser({ ...user, mustChangePassword: false })} />;
+  }
 
   return (
     <StoreProvider user={user}>

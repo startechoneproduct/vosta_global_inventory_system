@@ -11,6 +11,17 @@ function categorize(productName = '') {
   return 'other';
 }
 
+function addInterval(date, frequency) {
+  const d = new Date(date);
+  if (frequency === 'daily') d.setDate(d.getDate() + 1);
+  else if (frequency === 'weekly') d.setDate(d.getDate() + 7);
+  else if (frequency === 'biweekly') d.setDate(d.getDate() + 14);
+  else if (frequency === 'monthly') d.setMonth(d.getMonth() + 1);
+  return d;
+}
+
+
+
 // ============ CREATE CUSTOMER (driver populates -> visible to GM) ============
 router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
@@ -41,6 +52,41 @@ router.get('/', verifyToken, resolveStoreScope, async (req, res, next) => {
 
     const customers = await Customer.find(query).sort({ name: 1 });
     res.json({ success: true, data: customers });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============ SUPPLY SCHEDULE OVERVIEW ============
+// Must be registered before '/:customerId' below - otherwise Express
+// matches "supply-schedule" as a customerId and Mongoose throws a
+// CastError trying to treat that string as an ObjectId.
+router.get('/supply-schedule', verifyToken, resolveStoreScope, async (req, res, next) => {
+  try {
+    const customers = await Customer.find({
+      storeId: req.storeId,
+      'supplySchedule.isOnSchedule': true,
+    }).sort({ 'supplySchedule.nextSupplyDate': 1 });
+
+    const now = new Date();
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const categorized = {
+      overdue: [],
+      dueToday: [],
+      upcoming: [],
+    };
+
+    for (const c of customers) {
+      const due = c.supplySchedule.nextSupplyDate;
+      if (!due) continue;
+      if (due < now && due < endOfToday) categorized.overdue.push(c);
+      else if (due <= endOfToday) categorized.dueToday.push(c);
+      else categorized.upcoming.push(c);
+    }
+
+    res.json({ success: true, data: categorized });
   } catch (error) {
     next(error);
   }
@@ -138,6 +184,69 @@ async function applyPurchaseToCustomerTokens(customerId, items, recordedBy) {
   await customer.save();
   return customer;
 }
+
+router.put('/:customerId/schedule', verifyToken, resolveStoreScope, async (req, res, next) => {
+  try {
+    const { frequency, quantityPerSupply, startDate } = req.body;
+
+    if (!frequency || !['daily', 'weekly', 'biweekly', 'monthly'].includes(frequency)) {
+      return res.status(400).json({ success: false, message: 'frequency must be daily, weekly, biweekly, or monthly' });
+    }
+
+    const customer = await Customer.findOne({ _id: req.params.customerId, storeId: req.storeId });
+    if (!customer) return res.status(404).json({ success: false, message: 'Customer not found' });
+
+    const firstSupplyDate = startDate ? new Date(startDate) : new Date();
+
+    customer.supplySchedule = {
+      frequency,
+      quantityPerSupply: quantityPerSupply || 0,
+      nextSupplyDate: firstSupplyDate,
+      lastSupplyDate: customer.supplySchedule?.lastSupplyDate || null,
+      isOnSchedule: true,
+    };
+    await customer.save();
+
+    res.json({ success: true, message: 'Supply schedule set', data: customer });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/:customerId/schedule/deactivate', verifyToken, resolveStoreScope, async (req, res, next) => {
+  try {
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params.customerId, storeId: req.storeId },
+      { 'supplySchedule.isOnSchedule': false },
+      { new: true }
+    );
+    if (!customer) return res.status(404).json({ success: false, message: 'Customer not found' });
+    res.json({ success: true, data: customer });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/:customerId/schedule/mark-supplied', verifyToken, resolveStoreScope, async (req, res, next) => {
+  try {
+    const customer = await Customer.findOne({ _id: req.params.customerId, storeId: req.storeId });
+    if (!customer) return res.status(404).json({ success: false, message: 'Customer not found' });
+
+    if (!customer.supplySchedule?.isOnSchedule) {
+      return res.status(400).json({ success: false, message: 'This customer is not on an active supply schedule' });
+    }
+
+    const now = new Date();
+    customer.supplySchedule.lastSupplyDate = now;
+    customer.supplySchedule.nextSupplyDate = addInterval(now, customer.supplySchedule.frequency);
+    customer.lastPurchaseAt = now;
+    await customer.save();
+
+    res.json({ success: true, message: 'Marked as supplied. Next supply date updated.', data: customer });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.helpers = { applyPurchaseToCustomerTokens };
 

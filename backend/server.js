@@ -18,6 +18,7 @@ const driverLocationRoute = require('./src/routes/driverLocationRoute.js');
 const returnRoute = require('./src/routes/returnRoute.js');
 const staffRoute = require('./src/routes/staffRoute.js');
 const equipmentRoute = require('./src/routes/equipmentRoute.js');
+const damageRoute = require('./src/routes/damageRoutes.js');
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -65,6 +66,7 @@ app.use('/api/driver-location', driverLocationRoute);
 app.use('/api/returns', returnRoute);
 app.use('/api/staff', staffRoute);
 app.use('/api/equipment', equipmentRoute);
+app.use('/api/damages', damageRoute);
 
 app.use((req, res) => {
   res.status(404).json({

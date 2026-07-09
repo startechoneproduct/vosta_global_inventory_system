@@ -30,6 +30,11 @@ router.get('/', verifyToken, async (req, res, next) => {
 // ============ GET SINGLE STORE CONFIG ============
 router.get('/:storeId', verifyToken, async (req, res, next) => {
   try {
+    const user = await User.findById(req.user.userId);
+    if (!user.canAccessStore(req.params.storeId)) {
+      return res.status(403).json({ success: false, message: 'You do not have access to this store.' });
+    }
+
     const store = await Store.findById(req.params.storeId);
     if (!store) return res.status(404).json({ success: false, message: 'Store not found' });
     res.json({ success: true, data: store });
@@ -41,6 +46,11 @@ router.get('/:storeId', verifyToken, async (req, res, next) => {
 // ============ UPDATE STORE CONFIG (owner only) ============
 router.put('/:storeId', verifyToken, authorize('owner'), async (req, res, next) => {
   try {
+    const user = await User.findById(req.user.userId);
+    if (!user.canAccessStore(req.params.storeId)) {
+      return res.status(403).json({ success: false, message: 'You do not have access to this store.' });
+    }
+
     const { config } = req.body;
     const store = await Store.findByIdAndUpdate(req.params.storeId, { config }, { new: true });
     if (!store) return res.status(404).json({ success: false, message: 'Store not found' });

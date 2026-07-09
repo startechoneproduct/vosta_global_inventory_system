@@ -1,15 +1,17 @@
 const express = require('express');
 const { Product, StockMovement } = require('../models/index.js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, resolveStoreScope, authorize } = require('../middleware/auth');
 const { notifyStoreLeadership } = require('../utils/notify');
 
 const router = express.Router();
 
+const canEditStock = authorize('owner', 'general_manager', 'accountant');
+
 // ============ STOCK IN ============
-router.post('/in', verifyToken, async (req, res, next) => {
+router.post('/in', verifyToken, resolveStoreScope, canEditStock, async (req, res, next) => {
   try {
     const { productId, quantity, notes } = req.body;
-    const storeId = req.body.storeId || req.user.storeId;
+    const storeId = req.storeId;
 
     if (!productId || !quantity || quantity <= 0) {
       return res.status(400).json({
@@ -18,7 +20,7 @@ router.post('/in', verifyToken, async (req, res, next) => {
       });
     }
 
-    const product = await Product.findById(productId);
+    const product = await Product.findOne({ _id: productId, storeId });
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -55,10 +57,10 @@ router.post('/in', verifyToken, async (req, res, next) => {
 });
 
 // ============ STOCK OUT ============
-router.post('/out', verifyToken, async (req, res, next) => {
+router.post('/out', verifyToken, resolveStoreScope, canEditStock, async (req, res, next) => {
   try {
     const { productId, quantity, notes } = req.body;
-    const storeId = req.body.storeId || req.user.storeId;
+    const storeId = req.storeId;
 
     if (!productId || !quantity || quantity <= 0) {
       return res.status(400).json({
@@ -67,7 +69,7 @@ router.post('/out', verifyToken, async (req, res, next) => {
       });
     }
 
-    const product = await Product.findById(productId);
+    const product = await Product.findOne({ _id: productId, storeId });
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -114,10 +116,10 @@ router.post('/out', verifyToken, async (req, res, next) => {
 // This is the endpoint your Inventory page's "Manual Past-Sale Entry" tab
 // calls. It was missing entirely from the original file - that's what was
 // causing the "endpoint not found" error.
-router.post('/manual-past-sale', verifyToken, async (req, res, next) => {
+router.post('/manual-past-sale', verifyToken, resolveStoreScope, canEditStock, async (req, res, next) => {
   try {
     const { productId, quantity, manualEntryDate, notes } = req.body;
-    const storeId = req.body.storeId || req.user.storeId;
+    const storeId = req.storeId;
 
     if (!productId || !quantity || quantity <= 0 || !manualEntryDate) {
       return res.status(400).json({
@@ -126,7 +128,7 @@ router.post('/manual-past-sale', verifyToken, async (req, res, next) => {
       });
     }
 
-    const product = await Product.findById(productId);
+    const product = await Product.findOne({ _id: productId, storeId });
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
@@ -153,14 +155,9 @@ router.post('/manual-past-sale', verifyToken, async (req, res, next) => {
 });
 
 // ============ GET PRODUCTS WITH STOCK ============
-router.get('/products', verifyToken, async (req, res, next) => {
+router.get('/products', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
-    const storeId = req.query.storeId || req.user.storeId;
-
-    let query = {};
-    if (storeId) query.storeId = storeId;
-
-    const products = await Product.find(query).sort({ name: 1 });
+    const products = await Product.find({ storeId: req.storeId }).sort({ name: 1 });
 
     res.json({
       success: true,
@@ -172,13 +169,11 @@ router.get('/products', verifyToken, async (req, res, next) => {
 });
 
 // ============ GET STOCK MOVEMENTS ============
-router.get('/movements', verifyToken, async (req, res, next) => {
+router.get('/movements', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
     const { productId, type, startDate, endDate } = req.query;
-    const storeId = req.query.storeId || req.user.storeId;
 
-    let query = {};
-    if (storeId) query.storeId = storeId;
+    let query = { storeId: req.storeId };
     if (productId) query.productId = productId;
     if (type) query.type = type;
 
@@ -203,10 +198,9 @@ router.get('/movements', verifyToken, async (req, res, next) => {
 });
 
 // ============ INVENTORY ANALYTICS (stock health, levels) ============
-router.get('/analytics', verifyToken, async (req, res, next) => {
+router.get('/analytics', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
-    const storeId = req.query.storeId || req.user.storeId;
-    const products = await Product.find(storeId ? { storeId } : {});
+    const products = await Product.find({ storeId: req.storeId });
 
     const byStatus = { healthy: 0, low_stock: 0, out_of_stock: 0 };
     const totalUnits = products.reduce((sum, p) => sum + p.currentStock, 0);
@@ -256,10 +250,9 @@ async function checkLowStockAndNotify(storeId) {
 }
 
 // ============ MANUAL TRIGGER (test email delivery on demand) ============
-router.post('/check-low-stock-now', verifyToken, async (req, res, next) => {
+router.post('/check-low-stock-now', verifyToken, resolveStoreScope, canEditStock, async (req, res, next) => {
   try {
-    const storeId = req.body.storeId || req.user.storeId;
-    await checkLowStockAndNotify(storeId);
+    await checkLowStockAndNotify(req.storeId);
     res.json({ success: true, message: 'Low stock check complete. Notifications sent if any products are low.' });
   } catch (error) {
     next(error);

@@ -1,5 +1,6 @@
 const express = require('express');
-const { Sale, Product, Expense, Return, Customer, DriverLocation, ActivityLog } = require('../models');
+const mongoose = require('mongoose');
+const { Sale, Product, Expense, Return, Damage, Customer, DriverLocation, ActivityLog, Store } = require('../models');
 const { verifyToken, resolveStoreScope } = require('../middleware/auth');
 
 const router = express.Router();
@@ -24,12 +25,18 @@ async function buildGmDashboard(storeId, period) {
   const { start, end } = rangeFor(period);
   const todayStart = startOfToday();
 
-  const [todaySales, rangeSales, products, expenses, returnsInPeriod] = await Promise.all([
+  // NEW: need the store's type to decide whether "loss" means customer
+  // Returns (Fountain) or write-off Damages (Farm).
+  const store = await Store.findById(storeId);
+  const isFarm = store?.type === 'farm';
+
+  const [todaySales, rangeSales, products, expenses, returnsInPeriod, damagesInPeriod] = await Promise.all([
     Sale.find({ storeId, timestamp: { $gte: todayStart } }),
     Sale.find({ storeId, timestamp: { $gte: start, $lte: end } }),
     Product.find({ storeId }),
     Expense.find({ storeId, timestamp: { $gte: start, $lte: end } }),
-    Return.find({ storeId, timestamp: { $gte: start, $lte: end } }),
+    isFarm ? Promise.resolve([]) : Return.find({ storeId, timestamp: { $gte: start, $lte: end } }),
+    isFarm ? Damage.find({ storeId, timestamp: { $gte: start, $lte: end } }) : Promise.resolve([]),
   ]);
 
   const totalSalesToday = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
@@ -71,11 +78,15 @@ async function buildGmDashboard(storeId, period) {
     unitsSoldInPeriod: unitsSoldByProduct[p.name] || 0,
   }));
 
-  // Profit / loss - profit = revenue - cost of goods - approved expenses.
-  // NOTE: costOfGoods on Sale currently defaults to 0 unless populated
-  // elsewhere; wire in your actual unit cost data to make this fully
-  // accurate. Loss = expenses only exceeding revenue in the period, shown
-  // for completeness even if usually 0 for a healthy period.
+  // ============ REAL PROFIT / LOSS CALCULATION ============
+  //
+  //   Gross Profit = Revenue - Write-Off Value - Cost of Goods Sold
+  //   Net Profit   = Gross Profit - Approved Expenses
+  //
+  // Fountain's write-off value comes from Returns (money given back on a
+  // sale that didn't stick, approximated at current price). Farm's
+  // write-off value comes from Damages (cost of eggs/stock that never sold
+  // at all, valued at cost price since there was never a sale to reverse).
   const revenue = rangeSales.reduce((sum, s) => sum + s.totalAmount, 0);
   const cogs = rangeSales.reduce((sum, s) => sum + (s.costOfGoods || 0), 0);
 
@@ -83,13 +94,25 @@ async function buildGmDashboard(storeId, period) {
   for (const p of products) priceByProductId[p._id.toString()] = p.pricePerUnit;
 
   const returnsValue = returnsInPeriod.reduce((sum, r) => {
-    const price = priceByProductId[r.productId?.toString()] || 0;
+    // Prefer the price captured at the moment the return was recorded, so
+    // a later price change doesn't retroactively change a past period's
+    // write-off value. Only falls back to the current price for legacy
+    // records created before pricePerUnit was snapshotted on Return.
+    const price = r.pricePerUnit || priceByProductId[r.productId?.toString()] || 0;
     return sum + price * r.quantity;
   }, 0);
 
-  const approvedExpenseTotal = expenses.filter((e) => e.approvalStatus === 'approved').reduce((sum, e) => sum + e.amount, 0);
+  // Damage cost was already captured per-record at the time it was logged
+  // (see damageRoute.js), so this just sums what's already there.
+  const damageValue = damagesInPeriod.reduce((sum, d) => sum + (d.costValue || 0), 0);
 
-  const grossProfit = revenue - returnsValue - cogs;
+  const writeOffValue = isFarm ? damageValue : returnsValue;
+
+  const approvedExpenseTotal = expenses
+    .filter((e) => e.approvalStatus === 'approved')
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const grossProfit = revenue - writeOffValue - cogs;
   const netProfit = grossProfit - approvedExpenseTotal;
 
   const profit = netProfit > 0 ? netProfit : 0;
@@ -104,6 +127,7 @@ async function buildGmDashboard(storeId, period) {
 
   return {
     period,
+    storeType: store?.type,
     totalSalesToday,
     salesTrend,
     totalStock,
@@ -112,30 +136,41 @@ async function buildGmDashboard(storeId, period) {
     stockHealthByProduct,
     profit,
     loss,
-    profitBreakdown:{
+    profitBreakdown: {
       revenue,
-      returnsValue,
-      costOfGoods: cogs,
-      approvedExpense: approvedExpenseTotal,
+      // Generic label for the frontend to use regardless of store type -
+      // "Returns Value" for Fountain, "Damage Write-Off" for Farm.
+      writeOffValue,
+      writeOffLabel: isFarm ? 'Damaged Stock (Write-Off)' : 'Returns Value',
+      costOfGoodsSold: cogs,
+      approvedExpenses: approvedExpenseTotal,
       grossProfit,
       netProfit,
     },
     totalExpense: expenses.reduce((sum, e) => sum + e.amount, 0),
     expensePieChart,
-    returnsCount: returnsInPeriod.length,
+    // Generic count field, labeled appropriately by the frontend based on storeType.
+    writeOffCount: isFarm ? damagesInPeriod.length : returnsInPeriod.length,
+    // Kept for backward compatibility with the existing Fountain dashboard UI.
+    returnsCount: isFarm ? damagesInPeriod.length : returnsInPeriod.length,
   };
 }
 
-// ============ MANAGER / ACCOUNTANT DASHBOARD ============
+// ============ MANAGER / ACCOUNTANT / SUPERVISOR DASHBOARD ============
 async function buildManagerDashboard(storeId, period) {
   const { start, end } = rangeFor(period);
   const todayStart = startOfToday();
 
-  const [todaySales, rangeSales, products, returnsCount] = await Promise.all([
+  const store = await Store.findById(storeId);
+  const isFarm = store?.type === 'farm';
+
+  const [todaySales, rangeSales, products, writeOffCount] = await Promise.all([
     Sale.find({ storeId, timestamp: { $gte: todayStart } }),
     Sale.find({ storeId, timestamp: { $gte: start, $lte: end } }),
     Product.find({ storeId }),
-    Return.countDocuments({ storeId, timestamp: { $gte: start, $lte: end } }),
+    isFarm
+      ? Damage.countDocuments({ storeId, timestamp: { $gte: start, $lte: end } })
+      : Return.countDocuments({ storeId, timestamp: { $gte: start, $lte: end } }),
   ]);
 
   const totalSalesToday = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
@@ -150,7 +185,15 @@ async function buildManagerDashboard(storeId, period) {
     .sort(([a], [b]) => (a > b ? 1 : -1))
     .map(([date, total]) => ({ date, total }));
 
-  return { period, totalSalesToday, totalStock, returnsCount, stockTrend };
+  return {
+    period,
+    storeType: store?.type,
+    totalSalesToday,
+    totalStock,
+    returnsCount: writeOffCount,
+    writeOffCount,
+    stockTrend,
+  };
 }
 
 // ============ DRIVER DASHBOARD ============
@@ -165,9 +208,13 @@ async function buildDriverDashboard(storeId, driverId) {
     return logs.reduce((sum, l) => sum + l.quantity, 0);
   };
 
+  // $match in an aggregation pipeline doesn't auto-cast strings to ObjectId
+  // the way find()/findOne() do, so the driverId (a string off the JWT) has
+  // to be cast explicitly or this always matches zero documents.
+  const driverObjectId = new mongoose.Types.ObjectId(driverId);
   const sumDistance = async (since) => {
     const result = await DriverLocation.aggregate([
-      { $match: { driverId, recordedAt: { $gte: since } } },
+      { $match: { driverId: driverObjectId, recordedAt: { $gte: since } } },
       { $group: { _id: null, total: { $sum: '$distanceCoveredKm' } } },
     ]);
     return result[0]?.total || 0;
@@ -202,7 +249,7 @@ router.get('/summary', verifyToken, resolveStoreScope, async (req, res, next) =>
     let data;
     if (isGm) {
       data = await buildGmDashboard(req.storeId, period);
-    } else if (req.user.role === 'manager' || req.user.role === 'accountant') {
+    } else if (['manager', 'accountant', 'supervisor'].includes(req.user.role)) {
       data = await buildManagerDashboard(req.storeId, period);
     } else if (req.user.role === 'driver') {
       data = await buildDriverDashboard(req.storeId, req.user.userId);

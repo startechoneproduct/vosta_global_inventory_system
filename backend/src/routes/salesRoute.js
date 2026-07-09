@@ -53,6 +53,7 @@ router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
 
       const lineTotal = unitPrice * item.quantity;
       totalAmount += lineTotal;
+      costOfGoods += (product.costPerUnit || 0) * item.quantity;
 
       enrichedItems.push({
         productId: product._id,

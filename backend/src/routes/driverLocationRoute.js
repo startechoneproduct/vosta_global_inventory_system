@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { DriverLocation, User } = require('../models');
 const { verifyToken, resolveStoreScope, authorize, authorizeGm } = require('../middleware/auth');
 const { reverseGeocode, forwardGeocode } = require('../utils/geocode');
@@ -125,9 +126,13 @@ router.get('/me/stats', verifyToken, resolveStoreScope, authorize('driver'), asy
     const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
     const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
 
+    const driverObjectId = new mongoose.Types.ObjectId(req.user.userId);
     const sumSince = async (since) => {
+      // $match in an aggregation pipeline does not auto-cast strings to
+      // ObjectId the way find()/findOne() do - passing the raw JWT string
+      // here silently matched zero documents and always returned 0.
       const result = await DriverLocation.aggregate([
-        { $match: { driverId: req.user.userId, recordedAt: { $gte: since } } },
+        { $match: { driverId: driverObjectId, recordedAt: { $gte: since } } },
         { $group: { _id: null, total: { $sum: '$distanceCoveredKm' } } },
       ]);
       return result[0]?.total || 0;

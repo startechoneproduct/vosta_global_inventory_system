@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useStore } from '../context/StoreContext';
+import Damages from './Damage';
 
-export default function Returns() {
+function FountainReturns() {
   const [products, setProducts] = useState([]);
   const [returns, setReturns] = useState([]);
   const [form, setForm] = useState({ productId: '', quantity: '', reason: '' });
@@ -123,4 +125,15 @@ export default function Returns() {
       </div>
     </div>
   );
+}
+
+
+export default function Returns() {
+  const { activeStore } = useStore();
+
+  if (activeStore?.type === 'farm') {
+    return <Damages />;
+  }
+
+  return <FountainReturns />;
 }

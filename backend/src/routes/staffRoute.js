@@ -7,7 +7,7 @@ const { sendEmail } = require('../utils/email');
 const router = express.Router();
 
 // Roles the GM is allowed to assign, per store narrowing for Stacey Fountain.
-const ASSIGNABLE_ROLES = ['general_manager', 'manager', 'accountant', 'driver'];
+const ASSIGNABLE_ROLES = ['general_manager', 'manager', 'accountant', 'driver', 'supervisor'];
 
 function generatePassword() {
   // e.g. "Stc-7f2a9c1b" - readable enough to communicate, strong enough to pass.

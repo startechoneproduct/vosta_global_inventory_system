@@ -444,6 +444,14 @@ const customerSchema = new mongoose.Schema(
         recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       },
     ],
+
+    supplySchedule: {
+      frequency: { type: String, enum: ['daily', 'weekly', 'biweekly', 'monthly'], default: 'weekly' },
+      quantityPerSupply: { type: Number, default: 0 },
+      nextSupplyDate: Date,
+      lastSupplyDate: Date,
+      isOnSchedule: { type: Boolean, default: false },
+    },
     weeklySachetBags: { type: Number, default: 0 },
     weeklyBottles: { type: Number, default: 0 },
     tokens: { type: Number, default: 0 },
@@ -539,6 +547,11 @@ const returnSchema = new mongoose.Schema(
     quantity: { type: Number, required: true },
     reason: String,
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+    // FIX: snapshot of the product's price at the moment the return was
+    // recorded, so its write-off value in past dashboard periods doesn't
+    // silently drift every time the product's current price changes later.
+    // Legacy records created before this field existed will have it as 0.
+    pricePerUnit: { type: Number, default: 0 },
     recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     recordedByRole: String,
     approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
@@ -568,6 +581,31 @@ const notificationSchema = new mongoose.Schema(
 
 notificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
 
+// ============ DAMAGE SCHEMA ============
+
+const damageSchema = new mongoose.Schema(
+  {
+    storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true},
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true},
+    productName: String,
+    quantity: { type: Number, required: true},
+    reason: {
+      type: String,
+      enum: ['cracked', 'broken', 'contaminated', 'rotten', 'other'],
+      default: 'other',
+    },
+    costValue: { type: Number, required: true},
+    recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    recordedByRole: String,
+    notes: String,
+    timestamp: { type: Date, default: Date.now },
+    
+  },
+  { timestamps: true, collection: 'damages' }
+)
+
+damageSchema.index({ storeId: 1, timestamp: -1 });
+
 // ============ EXPORT MODELS ============
 
 const User = mongoose.model('User', userSchema);
@@ -583,6 +621,7 @@ const Equipment = mongoose.model('Equipment', equipmentSchema);
 const DriverLocation = mongoose.model('DriverLocation', driverLocationSchema);
 const Return = mongoose.model('Return', returnSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
+const Damage = mongoose.model('Damage', damageSchema);
 
 module.exports = {
   User,
@@ -598,4 +637,5 @@ module.exports = {
   DriverLocation,
   Return,
   Notification,
+  Damage,
 };

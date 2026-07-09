@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 
-const ASSIGNABLE_ROLES = ['general_manager', 'manager', 'accountant', 'driver'];
+const ASSIGNABLE_ROLES = ['general_manager', 'manager', 'accountant', 'driver', 'supervisor'];
 
 export default function StaffManagement() {
   const [staff, setStaff] = useState([]);

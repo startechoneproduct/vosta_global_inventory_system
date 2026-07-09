@@ -39,8 +39,7 @@ function StatCard({ label, value, icon, accent = 'blue' }) {
   );
 }
 
-// Custom legend: a colored dot + category name + amount, matching each
-// slice's color from PIE_COLORS by index (same order the chart renders them).
+
 function ExpenseLegend({ items }) {
   const total = items.reduce((sum, item) => sum + item.total, 0);
 
@@ -68,31 +67,33 @@ function ExpenseLegend({ items }) {
   );
 }
 
+
 function ProfitBreakdownPanel({ breakdown }) {
   const [open, setOpen] = useState(false);
- 
+
   if (!breakdown) return null;
- 
+
   const {
     revenue,
-    returnsValue,
+    writeOffValue,
+    writeOffLabel,
     costOfGoodsSold,
     approvedExpenses,
     grossProfit,
     netProfit,
   } = breakdown;
- 
+
   const isProfit = netProfit >= 0;
- 
+
   const rows = [
     { label: 'Revenue', value: revenue, sign: '' },
-    { label: 'Returns Value', value: returnsValue, sign: '−' },
+    { label: writeOffLabel || 'Returns Value', value: writeOffValue, sign: '−' },
     { label: 'Cost of Goods Sold', value: costOfGoodsSold, sign: '−' },
     { label: 'Gross Profit', value: grossProfit, sign: '=', emphasis: true },
     { label: 'Approved Expenses', value: approvedExpenses, sign: '−' },
     { label: isProfit ? 'Net Profit' : 'Net Loss', value: Math.abs(netProfit), sign: '=', emphasis: true },
   ];
- 
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <button
@@ -102,7 +103,7 @@ function ProfitBreakdownPanel({ breakdown }) {
         <span className="text-sm font-medium text-gray-700">How is profit/loss calculated?</span>
         <Icon name={open ? 'chevronUp' : 'chevronDown'} className="w-4 h-4 text-gray-400" />
       </button>
- 
+
       {open && (
         <div className="px-6 pb-6 space-y-1 border-t border-gray-100 pt-4">
           {rows.map((row) => (
@@ -120,8 +121,10 @@ function ProfitBreakdownPanel({ breakdown }) {
             </div>
           ))}
           <p className="text-xs text-gray-400 pt-2">
-            Returns Value is estimated using each product's current price, since returns don't record what the
-            item sold for at the time. Cost of Goods Sold only reflects products that have a cost price set.
+            {writeOffLabel === 'Damaged Stock (Write-Off)'
+              ? 'Damaged stock is valued at cost price, since it was written off before ever being sold.'
+              : "Returns Value uses the product's price at the moment the return was recorded, so later price changes don't affect past periods."}
+            {' '}Cost of Goods Sold only reflects products that have a cost price set.
           </p>
         </div>
       )}
@@ -220,7 +223,12 @@ function ManagerDashboard({ data }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Today's Sales" value={formatCurrency(data.totalSalesToday)} icon="sales" />
         <StatCard label="Total Stock" value={data.totalStock} icon="inventory" />
-        <StatCard label="Returns" value={data.returnsCount} icon="returns" accent="red" />
+        <StatCard
+          label={data.storeType === 'farm' ? 'Damaged/Broken Eggs' : 'Returns'}
+          value={data.returnsCount}
+          icon="returns"
+          accent="red"
+        />
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -248,9 +256,15 @@ function GmDashboard({ data }) {
         <StatCard label="Profit (period)" value={formatCurrency(data.profit)} icon="trendingUp" accent="green" />
         <StatCard label="Loss (period)" value={formatCurrency(data.loss)} icon="trendingDown" accent="red" />
         <StatCard label="Total Expense" value={formatCurrency(data.totalExpense)} icon="expenses" />
-        <StatCard label="Returns" value={data.returnsCount} icon="returns" accent="red" />
+        <StatCard
+          label={data.storeType === 'farm' ? 'Damaged/Broken Eggs' : 'Returns'}
+          value={data.returnsCount}
+          icon="returns"
+          accent="red"
+        />
       </div>
 
+      {/* NEW: profit breakdown panel */}
       <ProfitBreakdownPanel breakdown={data.profitBreakdown} />
 
       {data.lowStockProducts.length > 0 && (

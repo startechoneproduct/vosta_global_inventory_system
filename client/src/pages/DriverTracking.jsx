@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../services/api';
+import { useStore } from '../context/StoreContext';
 
 function DriverSelfView() {
   const [coords, setCoords] = useState(null); // kept only in memory, never rendered as text
@@ -22,10 +24,6 @@ function DriverSelfView() {
       );
     });
 
-  // Combined into one action: get the device's coordinates, then
-  // immediately send them to the server, which resolves them into an
-  // address and hands back only that address - the raw numbers never
-  // get displayed anywhere in the UI.
   const sendPing = async () => {
     setError('');
     setLocating(true);
@@ -73,8 +71,7 @@ function DriverSelfView() {
         return;
       }
       const response = await api.post('/driver-location/targets', { targetLocations: valid });
-      // Reflect back the addresses exactly as the server resolved them,
-      // so the driver can confirm it found the right place.
+      
       setTargets(
         response.data.data.targetLocations.map((t) => ({ label: t.label, address: t.address }))
       );
@@ -208,6 +205,12 @@ function LeadershipDriverMap() {
 
 export default function DriverTracking({ user }) {
   const isGm = user?.role === 'owner' || user?.role === 'general_manager';
+  const { activeStore } = useStore();
+
+  
+  if (activeStore?.type === 'farm') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="space-y-6">

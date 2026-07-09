@@ -4,11 +4,12 @@ import api from '../../services/api';
 import { useStore } from '../../context/StoreContext';
 import Icon from '../ui/Icons'; // adjust path to wherever your Icon.jsx lives
 
-function menuItemsForRole(role) {
+function menuItemsForRole(role, storeType) {
   const isGm = role === 'owner' || role === 'general_manager';
+  const isFarm = storeType === 'farm';
 
   if (isGm) {
-    return [
+    const items = [
       { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
       { path: '/products', label: 'Products', icon: 'product' },
       { path: '/sales', label: 'Sales', icon: 'sales' },
@@ -18,13 +19,18 @@ function menuItemsForRole(role) {
       { path: '/customers', label: 'Customers', icon: 'customers' },
       { path: '/activity-log', label: 'Activity Log', icon: 'activityLog' },
       { path: '/equipment', label: 'Equipment', icon: 'equipment' },
-      { path: '/driver-tracking', label: 'Driver Tracking', icon: 'truck' },
       { path: '/staff', label: 'Staff', icon: 'staff' },
       { path: '/attendance', label: 'Attendance', icon: 'attendance' },
     ];
+
+    if (!isFarm) {
+      items.splice(9, 0, { path: '/driver-tracking', label: 'Driver Tracking', icon: 'truck' });
+    }
+
+    return items
   }
 
-  if (role === 'manager') {
+  if (role === 'manager' || role === 'supervisor') {
     return [
       { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
       { path: '/sales', label: 'Sales', icon: 'sales' },
@@ -82,6 +88,7 @@ function StoreSwitcher() {
 export default function MainLayout({ children, user }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { activeStore } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -98,7 +105,7 @@ export default function MainLayout({ children, user }) {
   };
 
   const isActive = (path) => location.pathname === path;
-  const menuItems = menuItemsForRole(user?.role);
+  const menuItems = menuItemsForRole(user?.role, activeStore?.type);
 
   return (
     <div className="flex h-screen bg-gray-50">

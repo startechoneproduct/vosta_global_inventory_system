@@ -1,8 +1,35 @@
 const express = require('express');
-const { Product } = require('../models');
+const { Product , Store} = require('../models');
 const { verifyToken, resolveStoreScope, authorizeGm, authorize } = require('../middleware/auth');
 
 const router = express.Router();
+
+const BIRD_CATEGORIES = ['layer', 'broiler'];
+
+// Farm sells by crate (eggs) or bird (layers/broilers) only - the wider
+// unit list (pack/bag/bottle/unit) belongs to Fountain's product catalog.
+function validateUnitAndCategory(storeType, unitName, category) {
+  if (storeType === 'farm' && !['crate', 'bird'].includes(unitName)) {
+    return `Farm products must use unit "crate" or "bird", got "${unitName}"`;
+  }
+  if (unitName === 'bird' && !BIRD_CATEGORIES.includes(category)) {
+    return `Bird products require a category of ${BIRD_CATEGORIES.join(' or ')}`;
+  }
+  return null;
+}
+
+async function generateUniqueSku(storeType) {
+  const prefix = storeType === 'fountain' ? 'FTN' : storeType === 'farm' ? 'FRM' : 'STR';
+ 
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+    const candidate = `${prefix}-${suffix}`;
+    const exists = await Product.findOne({ sku: candidate });
+    if (!exists) return candidate;
+  }
+ 
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}`;
+}
 
 // ============ LIST PRODUCTS ============
 router.get('/', verifyToken, resolveStoreScope, async (req, res, next) => {
@@ -36,21 +63,24 @@ router.post('/', verifyToken, resolveStoreScope, authorize('owner', 'general_man
   try {
     // NEW: category (e.g. "layer"/"broiler" for Farm) and costPerUnit
     // (what this unit actually costs you) added alongside the existing fields.
-    const { sku, name, description, unitName, category, currentStock, minThreshold, pricePerUnit, costPerUnit } = req.body;
+    const {  name, description, unitName, category, currentStock, minThreshold, pricePerUnit, costPerUnit } = req.body;
 
-    if (!sku || !name || !unitName || pricePerUnit === undefined) {
+    if (!name || !unitName || pricePerUnit === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'sku, name, unitName and pricePerUnit are required',
+        message: 'name, unitName and pricePerUnit are required',
       });
     }
 
     // NEW: friendly duplicate-SKU message instead of letting Mongoose's raw
     // E11000 duplicate key error bubble up (sku is a unique index on Product).
-    const existing = await Product.findOne({ sku });
-    if (existing) {
-      return res.status(400).json({ success: false, message: `SKU "${sku}" is already in use` });
-    }
+     const store = await Store.findById(req.storeId);
+    if (!store) return res.status(404).json({ success: false, message: 'Store not found' });
+
+    const validationError = validateUnitAndCategory(store.type, unitName, category);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+
+    const sku = await generateUniqueSku(store.type);
 
     const product = await Product.create({
       storeId: req.storeId,
@@ -77,6 +107,22 @@ router.post('/', verifyToken, resolveStoreScope, authorize('owner', 'general_man
 router.put('/:productId', verifyToken, resolveStoreScope, authorize('owner', 'general_manager', 'accountant'), async (req, res, next) => {
   try {
     const { name, description, unitName, category, minThreshold, costPerUnit, isActive } = req.body;
+
+    if (unitName !== undefined || category !== undefined) {
+      const [store, existing] = await Promise.all([
+        Store.findById(req.storeId),
+        Product.findOne({ _id: req.params.productId, storeId: req.storeId }),
+      ]);
+      if (!existing) return res.status(404).json({ success: false, message: 'Product not found' });
+
+      const validationError = validateUnitAndCategory(
+        store?.type,
+        unitName !== undefined ? unitName : existing.unitName,
+        category !== undefined ? category : existing.category
+      );
+      if (validationError) return res.status(400).json({ success: false, message: validationError });
+    }
+
     const product = await Product.findOneAndUpdate(
       { _id: req.params.productId, storeId: req.storeId },
       {

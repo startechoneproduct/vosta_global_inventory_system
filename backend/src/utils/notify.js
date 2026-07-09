@@ -46,15 +46,17 @@ async function notifyUsers({ userIds, storeId, type, title, message, relatedId }
 async function notifyStoreLeadership({ storeId, includeManagers = false, type, title, message, relatedId }) {
   const roles = includeManagers ? ['owner', 'general_manager', 'manager'] : ['owner', 'general_manager'];
 
-  const users = await User.find({
-    isActive: true,
-    $or: [
-      { storeId, role: { $in: roles } },
-      { role: 'owner' }, // global owners always included
-    ],
-  });
+  const [storeUsers, owners] = await Promise.all([
+    User.find({ isActive: true, storeId, role: { $in: roles } }),
+    User.find({ isActive: true, role: 'owner' }),
+  ]);
 
-  const userIds = [...new Set(users.map((u) => u._id.toString()))];
+  // An owner restricted to specific stores via accessibleStoreIds should
+  // only be notified about stores they actually have access to - otherwise
+  // a Farm-only owner would get emailed about every Fountain event too.
+  const accessibleOwners = owners.filter((o) => o.canAccessStore(storeId));
+
+  const userIds = [...new Set([...storeUsers, ...accessibleOwners].map((u) => u._id.toString()))];
 
   return notifyUsers({ userIds, storeId, type, title, message, relatedId });
 }

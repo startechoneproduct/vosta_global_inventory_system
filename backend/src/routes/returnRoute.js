@@ -25,6 +25,7 @@ router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
       quantity,
       reason,
       customerId,
+      pricePerUnit: product.pricePerUnit,
       recordedBy: req.user.userId,
       recordedByRole: req.user.role,
       restocked: restock,
