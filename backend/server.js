@@ -19,6 +19,7 @@ const returnRoute = require('./src/routes/returnRoute.js');
 const staffRoute = require('./src/routes/staffRoute.js');
 const equipmentRoute = require('./src/routes/equipmentRoute.js');
 const damageRoute = require('./src/routes/damageRoutes.js');
+const axios = require('axios');
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -51,6 +52,28 @@ app.get('/api/health', (req, res) => {
     environment: NODE_ENV,
   });
 });
+
+
+app.get('/keep-alive', (_, res) => res.status(204).end());
+
+const keepAlive =
+  process.env.KEEP_ALIVE === 'true' || process.env.NODE_ENV === 'production';
+
+const PING_URL =
+  process.env.KEEP_ALIVE_URL || 'https://vosta-global-inventory-system.onrender.com/keep-alive';
+
+const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+
+if (keepAlive) {
+  setInterval(async () => {
+    try {
+      await axios.get(PING_URL);
+    } catch (error) {
+      console.error('Error pinging keep-alive URL:', error.message);
+    }
+  }, PING_INTERVAL_MS);
+}
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoute);

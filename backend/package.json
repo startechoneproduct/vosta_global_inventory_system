@@ -13,7 +13,8 @@
     "dev": "nodemon server.js",
     "seed": "node scripts/seed.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "reset": "node scripts/resetData.js"
   },
   "keywords": [
     "pos",
