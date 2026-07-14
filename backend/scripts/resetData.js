@@ -39,13 +39,16 @@ const WIPE_STORES = process.argv.includes('--wipe-stores');
 
 // ============ FIXED OWNER CREDENTIALS ============
 // Change these to whatever you actually want as your permanent default login.
-const OWNER_EMAIL = 'owner@stacey.com';
-const OWNER_PASSWORD = 'Password@123';
+const OWNER_EMAIL = 'admin@vostaglobal.org';
+const OWNER_PASSWORD = 'SecuredLink';
 const OWNER_FULL_NAME = 'Owner';
 
 async function resetData() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log('\n🧹 Starting data reset...\n');
 
     // ============ WIPE EVERYTHING TRANSACTIONAL ============
@@ -64,17 +67,29 @@ async function resetData() {
     ]);
 
     const labels = [
-      'Products', 'Sales', 'Stock Movements', 'Expenses', 'Attendance',
-      'Customers', 'Activity Logs', 'Equipment', 'Driver Locations',
-      'Returns', 'Notifications',
+      'Products',
+      'Sales',
+      'Stock Movements',
+      'Expenses',
+      'Attendance',
+      'Customers',
+      'Activity Logs',
+      'Equipment',
+      'Driver Locations',
+      'Returns',
+      'Notifications',
     ];
     wipeResults.forEach((result, i) => {
       console.log(`   🗑️  ${labels[i]}: ${result.deletedCount} removed`);
     });
 
     // ============ WIPE ALL NON-OWNER USERS ============
-    const staffWipe = await User.deleteMany({ email: { $ne: OWNER_EMAIL.toLowerCase() } });
-    console.log(`   🗑️  Staff accounts: ${staffWipe.deletedCount} removed (owner preserved)`);
+    const staffWipe = await User.deleteMany({
+      email: { $ne: OWNER_EMAIL.toLowerCase() },
+    });
+    console.log(
+      `   🗑️  Staff accounts: ${staffWipe.deletedCount} removed (owner preserved)`,
+    );
 
     // ============ STORES ============
     let fountainStore, farmStore;
@@ -97,7 +112,9 @@ async function resetData() {
         type: 'farm',
         config: { expenseApprovalThreshold: 100000, minStockThreshold: 10 },
       });
-      console.log('   ✅ Recreated empty Stacey Fountain and Stacey Farm stores');
+      console.log(
+        '   ✅ Recreated empty Stacey Fountain and Stacey Farm stores',
+      );
     } else {
       fountainStore = await Store.findOne({ type: 'fountain' });
       farmStore = await Store.findOne({ type: 'farm' });
@@ -106,7 +123,11 @@ async function resetData() {
         fountainStore = await Store.create({
           name: 'Stacey Fountain',
           type: 'fountain',
-          config: { expenseApprovalThreshold: 50000, minStockThreshold: 20, rewardRules: { sachetBagsPerToken: 2, tokensPerFreePack: 5 } },
+          config: {
+            expenseApprovalThreshold: 50000,
+            minStockThreshold: 20,
+            rewardRules: { sachetBagsPerToken: 2, tokensPerFreePack: 5 },
+          },
         });
         console.log('   ✅ Stacey Fountain store did not exist - created it');
       } else {
@@ -138,7 +159,9 @@ async function resetData() {
       owner.accessibleStoreIds = [fountainStore._id, farmStore._id];
       owner.storeId = fountainStore._id;
       await owner.save();
-      console.log(`   ↺  Owner account reset to default password: ${OWNER_EMAIL}`);
+      console.log(
+        `   ↺  Owner account reset to default password: ${OWNER_EMAIL}`,
+      );
     } else {
       owner = await User.create({
         email: OWNER_EMAIL.toLowerCase(),
