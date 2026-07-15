@@ -28,20 +28,29 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.use(morgan('dev'));
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://vostainventory.com.ng',
+  'https://www.vostainventory.com.ng',
+];
+
 app.use(
   cors({
-    origin:
-      process.env.CORS_ORIGIN ||
-      'http://vostainventory.com.ng' ||
-      'https://vosta-global-inventory-system.vercel.app' ||
-      'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  }),
-);
+    origin(origin, callback) {
+      console.log('Origin:', origin);
 
-app.use(express.json({ limit: '10mb' }));
+      // Allow requests like Postman or server-to-server
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    credentials: true,
+  }),
+);app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 
