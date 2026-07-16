@@ -3,11 +3,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-<<<<<<< HEAD
-      "destination": "/"
-=======
       "destination": "/index.html"
->>>>>>> dcff438 (whole new commit)
     }
   ]
 }
