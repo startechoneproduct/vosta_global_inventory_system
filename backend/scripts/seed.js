@@ -183,11 +183,11 @@ async function seed() {
 ║ ✅ DATABASE SEED SUCCESSFUL           ║
 ╚════════════════════════════════════════╝
 
-🔐 Demo Login Credentials (all use Password@123):
-   Owner (switches stores):  owner@stacey.com
-   Fountain Manager:         manager@fountain.com
-   Fountain Accountant:      accountant@fountain.com
-   Fountain Driver:          driver@fountain.com
+🔐 Demo Login Credentials:
+   Owner (switches stores):  admin@vostaglobal.org / SecuredLink
+   Fountain Manager:         manager@fountain.com / Password@123
+   Fountain Accountant:      accountant@fountain.com / Password@123
+   Fountain Driver:          driver@fountain.com / Password@123
     `);
 
     process.exit(0);
