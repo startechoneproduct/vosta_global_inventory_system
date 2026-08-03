@@ -1,0 +1,30 @@
+{
+  "brand": "Stacey POS",
+  "storeTypeFarm": "Farm",
+  "storeTypeFountain": "Fountain",
+  "nav": {
+    "dashboard": "Übersicht",
+    "products": "Produkte",
+    "sales": "Verkäufe",
+    "inventory": "Lagerbestand",
+    "inventoryMovement": "Lagerbewegung",
+    "expenses": "Ausgaben",
+    "returns": "Rücksendungen",
+    "customers": "Kunden",
+    "myCustomers": "Meine Kunden",
+    "activityLog": "Aktivitätsprotokoll",
+    "myActivityLog": "Mein Aktivitätsprotokoll",
+    "equipment": "Ausrüstung",
+    "staff": "Personal",
+    "driverTracking": "Fahrerverfolgung",
+    "myLocation": "Mein Standort",
+    "production": "Produktion",
+    "vaccination": "Impfung"
+  },
+  "switchStore": "Filiale wechseln",
+  "language": "Sprache",
+  "notifications": "Benachrichtigungen",
+  "profileSettings": "Profileinstellungen",
+  "changePassword": "Passwort ändern",
+  "signOut": "Abmelden"
+}

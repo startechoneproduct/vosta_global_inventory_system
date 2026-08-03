@@ -1,0 +1,18 @@
+{
+  "brand": "Stacey POS",
+  "tagline": "Verwalten Sie Ihre Stacey Fountain- und Stacey Farm-Betriebe mühelos. Lagerbestand, Verkäufe und Berichte an einem Ort.",
+  "featureInventory": "Lagerbestand in Echtzeit verfolgen",
+  "featureMultiLocation": "Verwaltung mehrerer Standorte",
+  "featureReporting": "Umfassende Berichte",
+  "subtitle": "Kassensystem (POS) Verwaltung",
+  "welcomeBack": "Willkommen zurück",
+  "signInPrompt": "Melden Sie sich an, um fortzufahren",
+  "emailLabel": "E-Mail-Adresse",
+  "emailPlaceholder": "sie@beispiel.com",
+  "passwordLabel": "Passwort",
+  "passwordPlaceholder": "********",
+  "signIn": "Anmelden",
+  "signingIn": "Anmeldung läuft...",
+  "loginFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+  "copyright": "© 2026 Stacey Enterprises. Alle Rechte vorbehalten."
+}

@@ -1,0 +1,68 @@
+{
+  "title": "Sales",
+  "subtitle": "Record sales transactions",
+  "tabs": {
+    "record": "Record Sale",
+    "overview": "Sales Overview"
+  },
+  "newSale": "New Sale",
+  "errors": {
+    "loadProducts": "Failed to load products",
+    "loadAnalytics": "Failed to load sales analytics",
+    "addItem": "Add at least one item to the sale",
+    "recordSale": "Failed to record sale"
+  },
+  "success": {
+    "saleRecorded": "Sale recorded successfully!"
+  },
+  "form": {
+    "selectProduct": "Select Product",
+    "stockLabel": "Stock: {{count}}",
+    "qtyPlaceholder": "Qty",
+    "pricePlaceholder": "Price",
+    "priceLockedTitle": "Only the General Manager can change price (audit locked)",
+    "priceOverrideTitle": "Override price",
+    "priceLockedNote": "🔒 Price fields are locked. Only the General Manager can override product prices.",
+    "addItem": "+ Add Item",
+    "paymentMethod": "Payment Method",
+    "paymentOptions": {
+      "cash": "Cash",
+      "transfer": "Bank Transfer",
+      "card": "Card"
+    },
+    "total": "Total:",
+    "recording": "Recording...",
+    "recordSale": "Record Sale"
+  },
+  "recentSales": {
+    "heading": "Recent Sales",
+    "colDate": "Date",
+    "colProducts": "Product(s)",
+    "colPayment": "Payment",
+    "colRecordedBy": "Recorded By",
+    "colTotal": "Total",
+    "empty": "No sales recorded yet"
+  },
+  "overview": {
+    "periods": {
+      "2days": "2 Days",
+      "7days": "7 Days",
+      "1month": "1 Month",
+      "1year": "1 Year"
+    },
+    "stats": {
+      "totalSales": "Total Sales",
+      "totalProfit": "Total Profit",
+      "totalCost": "Total Cost",
+      "avgSaleValue": "Average Sale Value"
+    },
+    "charts": {
+      "salesTrend": "Trend of Sales by Day",
+      "topSelling": "Top 5 Selling Products",
+      "bottomSelling": "Bottom 5 Selling Products",
+      "transactionCount": "Transaction Count By Product",
+      "revenueByCategory": "Total Revenue by Category"
+    },
+    "noSalesInPeriod": "No sales recorded in this period."
+  }
+}

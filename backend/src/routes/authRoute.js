@@ -5,6 +5,11 @@ const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Access tokens are intentionally short-lived for security; the frontend
+// silently renews them via POST /auth/refresh (see api.js's response
+// interceptor) so this doesn't force users to re-login every 3 minutes.
+const ACCESS_TOKEN_EXPIRE_SECONDS = Number(process.env.JWT_EXPIRE_SECONDS) || 180;
+
 function signAccessToken(user) {
   return jwt.sign(
     {
@@ -16,7 +21,7 @@ function signAccessToken(user) {
       accessibleStoreIds: user.accessibleStoreIds || [],
     },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '15m' }
+    { expiresIn: ACCESS_TOKEN_EXPIRE_SECONDS }
   );
 }
 
@@ -69,7 +74,7 @@ router.post('/login', async (req, res, next) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000,
+      maxAge: ACCESS_TOKEN_EXPIRE_SECONDS * 1000,
     });
 
     res.status(200).json({
@@ -149,7 +154,7 @@ router.post('/refresh', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000,
+      maxAge: ACCESS_TOKEN_EXPIRE_SECONDS * 1000,
     });
 
     res.status(200).json({ success: true, message: 'Token refreshed', data: { accessToken } });

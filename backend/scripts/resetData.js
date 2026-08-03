@@ -7,7 +7,6 @@ const {
   Sale,
   StockMovement,
   Expense,
-  Attendance,
   Customer,
   ActivityLog,
   Equipment,
@@ -22,7 +21,7 @@ const {
  *   - Exactly ONE user: the owner, with a FIXED default login
  *
  * Everything else (products, sales, expenses, customers, activity logs,
- * equipment, driver locations, returns, notifications, attendance, stock
+ * equipment, driver locations, returns, notifications, stock
  * movements, and every non-owner staff account) is deleted.
  *
  * Usage:
@@ -57,7 +56,6 @@ async function resetData() {
       Sale.deleteMany({}),
       StockMovement.deleteMany({}),
       Expense.deleteMany({}),
-      Attendance.deleteMany({}),
       Customer.deleteMany({}),
       ActivityLog.deleteMany({}),
       Equipment.deleteMany({}),
@@ -71,7 +69,6 @@ async function resetData() {
       'Sales',
       'Stock Movements',
       'Expenses',
-      'Attendance',
       'Customers',
       'Activity Logs',
       'Equipment',
@@ -184,7 +181,7 @@ async function resetData() {
    Password: ${OWNER_PASSWORD}
 
 Everything else - products, sales, staff, expenses, customers, equipment,
-driver locations, returns, notifications, attendance - has been cleared.
+driver locations, returns, notifications - has been cleared.
 ${WIPE_STORES ? 'Stores were wiped and recreated empty.' : 'Stores were left intact (or created fresh if missing).'}
     `);
 

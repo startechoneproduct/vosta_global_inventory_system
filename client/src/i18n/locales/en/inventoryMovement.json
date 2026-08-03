@@ -1,0 +1,26 @@
+{
+  "title": "Inventory Movement",
+  "subtitle": "Full ledger of every stock change - sales, restocks, returns, production and write-offs",
+  "loadError": "Failed to load inventory movements",
+  "unknownProduct": "Unknown product",
+  "noMovements": "No stock movements recorded yet",
+  "columns": {
+    "product": "Product",
+    "type": "Type",
+    "quantity": "Quantity",
+    "balanceAfter": "Balance After",
+    "performedBy": "Performed By",
+    "date": "Date",
+    "time": "Time",
+    "store": "Store"
+  },
+  "types": {
+    "in": "Stock In",
+    "out": "Stock Out",
+    "return_in": "Return In",
+    "production_in": "Production In",
+    "sale": "Sale",
+    "damage_out": "Damage Write-Off",
+    "manual_past_sale": "Manual Past Sale"
+  }
+}

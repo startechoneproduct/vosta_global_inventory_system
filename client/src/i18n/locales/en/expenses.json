@@ -1,0 +1,61 @@
+{
+  "title": "Expenses",
+  "subtitle": "Track and manage business expenses",
+  "tabs": {
+    "record": "Record & Track",
+    "overview": "Expense Overview"
+  },
+  "recordExpense": "Record Expense",
+  "form": {
+    "category": "Category",
+    "selectCategory": "Select Category",
+    "amount": "Amount (₦)",
+    "amountPlaceholder": "0.00",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter expense details...",
+    "recording": "Recording...",
+    "submit": "Record Expense"
+  },
+  "expensesListTitle": "Expenses",
+  "filter": {
+    "all": "All",
+    "pending": "Pending",
+    "approved": "Approved"
+  },
+  "noExpensesFound": "No expenses found",
+  "recordedBy": "Recorded by {{name}}",
+  "approvedBy": "Approved by {{name}}",
+  "unknown": "Unknown",
+  "approve": "Approve",
+  "status": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "messages": {
+    "expenseRecordedStatus": "Expense recorded. Status: {{status}}",
+    "expenseApproved": "Expense approved",
+    "failedToLoadExpenses": "Failed to load expenses",
+    "failedToLoadAnalytics": "Failed to load expense analytics"
+  },
+  "overview": {
+    "periods": {
+      "2days": "2 Days",
+      "7days": "7 Days",
+      "1month": "1 Month",
+      "1year": "1 Year"
+    },
+    "totalExpenses": "Total Expenses",
+    "profitMargin": "Profit Margin",
+    "expenseTransactionCount": "Expense Transaction Count",
+    "sumByExpenseType": "Sum of Amount by Expense Type",
+    "noExpensesPeriod": "No expenses recorded in this period.",
+    "noExpensesPeriodTable": "No expenses recorded in this period",
+    "totalSalesVsExpenses": "Total Sales vs Total Expenses",
+    "totalSales": "Total Sales",
+    "expenseTypeBreakdown": "Expense Type Breakdown",
+    "colExpenseType": "Expense Type",
+    "colTotalExpense": "Total Expense",
+    "colPercentOfTotal": "% of Total"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "title": "Damaged / Broken Eggs",
+  "subtitle": "Record eggs that broke, cracked, or spoiled before they could be sold",
+  "reasons": {
+    "broken": "Broken",
+    "cracked": "Cracked",
+    "rotten": "Rotten",
+    "contaminated": "Contaminated",
+    "transport_damage": "Damaged in Transport",
+    "other": "Other"
+  },
+  "totalRecorded": "Total Recorded",
+  "estimatedLoss": "Estimated Loss",
+  "selectProduct": "Select Product",
+  "quantity": "Quantity",
+  "notesOptional": "Notes (optional)",
+  "recordDamage": "Record Damage",
+  "recentlyRecorded": "Recently Recorded",
+  "colDate": "Date",
+  "colProduct": "Product",
+  "colQty": "Qty",
+  "colReason": "Reason",
+  "colLoss": "Loss",
+  "colRecordedBy": "Recorded By",
+  "noneRecorded": "No damage recorded yet",
+  "selectProductAndQuantity": "Select a product and enter a quantity"
+}

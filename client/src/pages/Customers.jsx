@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useStore } from '../context/StoreContext';
-
-const FREQUENCIES = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Every 2 Weeks' },
-  { value: 'monthly', label: 'Monthly' },
-];
 
 // NEW: this is the screen that solves the "who's supposed to get eggs
 // today?" mix-up - three clear buckets (overdue, due today, upcoming) so
 // nobody has to remember it from memory or a notebook.
 function SupplySchedule() {
+  const { t } = useTranslation('customers');
+
+  const FREQUENCIES = [
+    { value: 'daily', label: t('schedule.frequencies.daily') },
+    { value: 'weekly', label: t('schedule.frequencies.weekly') },
+    { value: 'biweekly', label: t('schedule.frequencies.biweekly') },
+    { value: 'monthly', label: t('schedule.frequencies.monthly') },
+  ];
+
   const [schedule, setSchedule] = useState({ overdue: [], dueToday: [], upcoming: [] });
   const [customers, setCustomers] = useState([]);
   const [scheduleForm, setScheduleForm] = useState({ customerId: '', frequency: 'weekly', quantityPerSupply: '' });
@@ -48,14 +51,14 @@ function SupplySchedule() {
     setSuccess('');
     try {
       if (!scheduleForm.customerId) {
-        setError('Select a customer');
+        setError(t('errors.selectCustomer'));
         return;
       }
       await api.put(`/customers/${scheduleForm.customerId}/schedule`, {
         frequency: scheduleForm.frequency,
         quantityPerSupply: Number(scheduleForm.quantityPerSupply || 0),
       });
-      setSuccess('Supply schedule set');
+      setSuccess(t('success.scheduleSet'));
       setScheduleForm({ customerId: '', frequency: 'weekly', quantityPerSupply: '' });
       fetchSchedule();
     } catch (err) {
@@ -68,7 +71,7 @@ function SupplySchedule() {
     setSuccess('');
     try {
       await api.post(`/customers/${customerId}/schedule/mark-supplied`);
-      setSuccess('Marked as supplied - next date updated');
+      setSuccess(t('success.markedSupplied'));
       fetchSchedule();
     } catch (err) {
       setError(err.message);
@@ -80,7 +83,7 @@ function SupplySchedule() {
       <div>
         <p className="text-sm font-medium text-gray-900">{customer.name}</p>
         <p className="text-xs text-gray-500">
-          {customer.location || 'No location set'} · {customer.supplySchedule.quantityPerSupply} crate(s) per supply
+          {customer.location || t('schedule.noLocationSet')} · {Math.round(customer.supplySchedule.quantityPerSupply)} {t('schedule.cratesPerSupply')}
         </p>
       </div>
       <div className="flex items-center gap-3">
@@ -88,7 +91,7 @@ function SupplySchedule() {
           {new Date(customer.supplySchedule.nextSupplyDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
         </span>
         <button onClick={() => markSupplied(customer._id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-          Mark Supplied
+          {t('schedule.markSupplied')}
         </button>
       </div>
     </div>
@@ -101,7 +104,7 @@ function SupplySchedule() {
 
       <form onSubmit={handleSetSchedule} className="bg-white rounded-lg border border-gray-200 p-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
         <select className="input-field sm:col-span-2" value={scheduleForm.customerId} onChange={(e) => setScheduleForm({ ...scheduleForm, customerId: e.target.value })}>
-          <option value="">Add customer to schedule...</option>
+          <option value="">{t('schedule.addCustomerOption')}</option>
           {customers.map((c) => (
             <option key={c._id} value={c._id}>{c.name}</option>
           ))}
@@ -114,40 +117,40 @@ function SupplySchedule() {
         <input
           type="number"
           className="input-field"
-          placeholder="Crates per supply"
+          placeholder={t('schedule.cratesPerSupplyPlaceholder')}
           value={scheduleForm.quantityPerSupply}
           onChange={(e) => setScheduleForm({ ...scheduleForm, quantityPerSupply: e.target.value })}
           min="0"
         />
-        <button type="submit" className="btn-primary sm:col-span-4">Add to Schedule</button>
+        <button type="submit" className="btn-primary sm:col-span-4">{t('schedule.addToSchedule')}</button>
       </form>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg border border-red-200 p-6">
-          <h3 className="font-semibold text-red-700 mb-1">⚠️ Overdue ({schedule.overdue.length})</h3>
-          <p className="text-xs text-gray-400 mb-3">These were due before today and haven't been marked supplied</p>
+          <h3 className="font-semibold text-red-700 mb-1">⚠️ {t('schedule.overdue.heading', { count: schedule.overdue.length })}</h3>
+          <p className="text-xs text-gray-400 mb-3">{t('schedule.overdue.description')}</p>
           {schedule.overdue.length === 0 ? (
-            <p className="text-sm text-gray-400">Nothing overdue</p>
+            <p className="text-sm text-gray-400">{t('schedule.overdue.empty')}</p>
           ) : (
             schedule.overdue.map((c) => <CustomerRow key={c._id} customer={c} tone="badge-red" />)
           )}
         </div>
 
         <div className="bg-white rounded-lg border border-yellow-200 p-6">
-          <h3 className="font-semibold text-yellow-700 mb-1">📅 Due Today ({schedule.dueToday.length})</h3>
-          <p className="text-xs text-gray-400 mb-3">Supply these today</p>
+          <h3 className="font-semibold text-yellow-700 mb-1">📅 {t('schedule.dueToday.heading', { count: schedule.dueToday.length })}</h3>
+          <p className="text-xs text-gray-400 mb-3">{t('schedule.dueToday.description')}</p>
           {schedule.dueToday.length === 0 ? (
-            <p className="text-sm text-gray-400">Nobody due today</p>
+            <p className="text-sm text-gray-400">{t('schedule.dueToday.empty')}</p>
           ) : (
             schedule.dueToday.map((c) => <CustomerRow key={c._id} customer={c} tone="badge-yellow" />)
           )}
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-700 mb-1">🔜 Upcoming ({schedule.upcoming.length})</h3>
-          <p className="text-xs text-gray-400 mb-3">Scheduled for later</p>
+          <h3 className="font-semibold text-gray-700 mb-1">🔜 {t('schedule.upcoming.heading', { count: schedule.upcoming.length })}</h3>
+          <p className="text-xs text-gray-400 mb-3">{t('schedule.upcoming.description')}</p>
           {schedule.upcoming.length === 0 ? (
-            <p className="text-sm text-gray-400">Nothing coming up</p>
+            <p className="text-sm text-gray-400">{t('schedule.upcoming.empty')}</p>
           ) : (
             schedule.upcoming.map((c) => <CustomerRow key={c._id} customer={c} tone="badge-green" />)
           )}
@@ -158,6 +161,7 @@ function SupplySchedule() {
 }
 
 export default function Customers({ user }) {
+  const { t } = useTranslation('customers');
   const { activeStore } = useStore();
   const isFarm = activeStore?.type === 'farm';
   const isDriver = user?.role === 'driver';
@@ -190,12 +194,12 @@ export default function Customers({ user }) {
     setSuccess('');
     try {
       if (!form.name) {
-        setError('Customer name is required');
+        setError(t('errors.nameRequired'));
         setLoading(false);
         return;
       }
       await api.post('/customers', form);
-      setSuccess('Customer added');
+      setSuccess(t('success.customerAdded'));
       setForm({ name: '', phone: '', location: '' });
       fetchCustomers();
     } catch (err) {
@@ -212,7 +216,7 @@ export default function Customers({ user }) {
     setSuccess('');
     try {
       if (!purchaseForm.customerId || !purchaseForm.productName || !purchaseForm.quantity) {
-        setError('Select a customer, product name and quantity');
+        setError(t('errors.selectCustomerProductQuantity'));
         setLoading(false);
         return;
       }
@@ -220,7 +224,7 @@ export default function Customers({ user }) {
         productName: purchaseForm.productName,
         quantity: Number(purchaseForm.quantity),
       });
-      setSuccess('Purchase recorded');
+      setSuccess(t('success.purchaseRecorded'));
       setPurchaseForm({ customerId: '', productName: '', quantity: '' });
       fetchCustomers();
     } catch (err) {
@@ -242,13 +246,13 @@ export default function Customers({ user }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
         <p className="text-gray-500 mt-1">
           {isFarm
-            ? 'Manage customer supply schedules and delivery history'
+            ? t('subtitle.farm')
             : isDriver
-            ? 'Customers you have added'
-            : 'All customers, purchases and token rewards'}
+            ? t('subtitle.driver')
+            : t('subtitle.default')}
         </p>
       </div>
 
@@ -257,15 +261,15 @@ export default function Customers({ user }) {
 
       {isFarm && (
         <div className="flex gap-2 border-b border-gray-200">
-          {['schedule', 'directory'].map((t) => (
+          {['schedule', 'directory'].map((tabKey) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                tab === t ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                tab === tabKey ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              {t === 'schedule' ? 'Supply Schedule' : 'Customer Directory'}
+              {tabKey === 'schedule' ? t('tabs.schedule') : t('tabs.directory')}
             </button>
           ))}
         </div>
@@ -278,46 +282,46 @@ export default function Customers({ user }) {
           {isDriver && !isFarm && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <form onSubmit={handleAddCustomer} className="bg-white rounded-lg border border-gray-200 p-6 space-y-3">
-                <h2 className="text-lg font-semibold text-gray-900">Add Customer</h2>
-                <input className="input-field" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                <input className="input-field" placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                <input className="input-field" placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-                <button type="submit" disabled={loading} className="btn-primary w-full">Add Customer</button>
+                <h2 className="text-lg font-semibold text-gray-900">{t('form.addCustomer')}</h2>
+                <input className="input-field" placeholder={t('form.namePlaceholder')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <input className="input-field" placeholder={t('form.phonePlaceholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                <input className="input-field" placeholder={t('form.locationPlaceholder')} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                <button type="submit" disabled={loading} className="btn-primary w-full">{t('form.addCustomer')}</button>
               </form>
 
               <form onSubmit={handleRecordPurchase} className="bg-white rounded-lg border border-gray-200 p-6 space-y-3">
-                <h2 className="text-lg font-semibold text-gray-900">Record a Delivery / Purchase</h2>
+                <h2 className="text-lg font-semibold text-gray-900">{t('form.recordDeliveryPurchase')}</h2>
                 <select className="input-field" value={purchaseForm.customerId} onChange={(e) => setPurchaseForm({ ...purchaseForm, customerId: e.target.value })}>
-                  <option value="">Select customer</option>
+                  <option value="">{t('form.selectCustomer')}</option>
                   {customers.map((c) => (
                     <option key={c._id} value={c._id}>{c.name}</option>
                   ))}
                 </select>
                 <input
                   className="input-field"
-                  placeholder="Product (e.g. Sachet Water Bag)"
+                  placeholder={t('form.productPlaceholder')}
                   value={purchaseForm.productName}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, productName: e.target.value })}
                 />
                 <input
                   type="number"
                   className="input-field"
-                  placeholder="Quantity"
+                  placeholder={t('form.quantityPlaceholder')}
                   value={purchaseForm.quantity}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, quantity: e.target.value })}
                   min="1"
                 />
-                <button type="submit" disabled={loading} className="btn-primary w-full">Record Purchase</button>
+                <button type="submit" disabled={loading} className="btn-primary w-full">{t('form.recordPurchase')}</button>
               </form>
             </div>
           )}
 
           {isFarm && (
             <form onSubmit={handleAddCustomer} className="bg-white rounded-lg border border-gray-200 p-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <input className="input-field" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <input className="input-field" placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              <input className="input-field" placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-              <button type="submit" disabled={loading} className="btn-primary">Add Customer</button>
+              <input className="input-field" placeholder={t('form.namePlaceholder')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <input className="input-field" placeholder={t('form.phonePlaceholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <input className="input-field" placeholder={t('form.locationPlaceholder')} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              <button type="submit" disabled={loading} className="btn-primary">{t('form.addCustomer')}</button>
             </form>
           )}
 
@@ -325,39 +329,39 @@ export default function Customers({ user }) {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Location</th>
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Sachet Bags (lifetime)</th>}
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Bottles (lifetime)</th>}
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Tokens</th>}
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Free Packs Earned</th>}
-                  {isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">On Schedule?</th>}
-                  {isDriver && !isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Redeem</th>}
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.name')}</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.location')}</th>
+                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.sachetBagsLifetime')}</th>}
+                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.bottlesLifetime')}</th>}
+                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.tokens')}</th>}
+                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.freePacksEarned')}</th>}
+                  {isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.onSchedule')}</th>}
+                  {isDriver && !isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.redeem')}</th>}
                 </tr>
               </thead>
               <tbody>
                 {customers.length === 0 ? (
-                  <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">No customers yet</td></tr>
+                  <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">{t('table.noCustomersYet')}</td></tr>
                 ) : (
                   customers.map((c) => (
                     <tr key={c._id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-6 py-3 font-medium text-gray-900">{c.name}</td>
                       <td className="px-6 py-3 text-sm text-gray-600">{c.location || '-'}</td>
-                      {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{c.weeklySachetBags}</td>}
-                      {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{c.weeklyBottles}</td>}
-                      {!isFarm && <td className="px-6 py-3 text-sm font-semibold text-blue-600">{c.tokens - c.tokensRedeemed}</td>}
+                      {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{Math.round(c.weeklySachetBags)}</td>}
+                      {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{Math.round(c.weeklyBottles)}</td>}
+                      {!isFarm && <td className="px-6 py-3 text-sm font-semibold text-blue-600">{Math.round(c.tokens - c.tokensRedeemed)}</td>}
                       {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{c.freePacksEarned}</td>}
                       {isFarm && (
                         <td className="px-6 py-3">
                           <span className={c.supplySchedule?.isOnSchedule ? 'badge-green' : 'badge-yellow'}>
-                            {c.supplySchedule?.isOnSchedule ? 'Yes' : 'Not scheduled'}
+                            {c.supplySchedule?.isOnSchedule ? t('table.scheduledYes') : t('table.notScheduled')}
                           </span>
                         </td>
                       )}
                       {isDriver && !isFarm && (
                         <td className="px-6 py-3">
                           <button onClick={() => handleRedeem(c._id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                            Redeem
+                            {t('table.redeem')}
                           </button>
                         </td>
                       )}

@@ -346,12 +346,22 @@ const stockMovementSchema = new mongoose.Schema(
       type: String,
       // FIX: this is the actual bug you hit. 'manual_past_sale' was missing
       // from this list, so Mongoose rejected it before it ever reached the DB.
-      enum: ['in', 'out', 'return_in', 'manual_past_sale'],
+      // 'sale' and 'damage_out' added so every stock-affecting event lands in
+      // this one ledger (used by the Inventory Movement module).
+      enum: ['in', 'out', 'return_in', 'manual_past_sale', 'production_in', 'sale', 'damage_out'],
       required: true,
     },
     quantity: {
       type: Number,
       required: true,
+    },
+    // Snapshot of Product.currentStock immediately after this movement was
+    // applied, so the Inventory Movement ledger can show a running balance
+    // without re-deriving it from history at read time. Null for entries
+    // that don't touch live stock (e.g. manual_past_sale backfills).
+    balanceAfter: {
+      type: Number,
+      default: null,
     },
     recordedBy: mongoose.Schema.Types.ObjectId,
     notes: String,
@@ -378,9 +388,8 @@ const expenseSchema = new mongoose.Schema(
       enum: [
         // Stacey Fountain categories
         'Fuel', 'Caps', 'Bottle Preforms', 'Nylon', 'Filters', 'AEDC', 'Labels', 'Salaries', 'Maintenance', 'Misc',
-        // FIX: added - Stacey Farm categories, otherwise recording a farm
-        // expense would hit the exact same enum error you just saw.
-        'Layer Mash', 'Grower Mash', 'Feeds', 'Vaccination', 'Medication', 'Day-Old Chicks',
+        // Stacey Farm categories
+        'Layer Mash', 'Grower Mash', 'Layer Feed Bag', 'Grower Feed Bag', 'Feeds', 'Vaccination', 'Medication', 'Day-Old Chicks',
       ],
       required: true,
     },
@@ -395,36 +404,6 @@ const expenseSchema = new mongoose.Schema(
 );
 
 expenseSchema.index({ storeId: 1, timestamp: -1 });
-
-// ============ ATTENDANCE SCHEMA ============
-const attendanceSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    storeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Store',
-    },
-    clockIn: {
-      type: Date,
-      required: true,
-    },
-    clockOut: Date,
-    hoursWorked: Number,
-    status: {
-      type: String,
-      enum: ['present', 'late', 'absent'],
-      default: 'present',
-    },
-    notes: String,
-  },
-  { timestamps: true, collection: 'attendance' }
-);
-
-attendanceSchema.index({ userId: 1, clockIn: -1 });
 
 // ============ CUSTOMER SCHEMA (with token rewards) ============
 
@@ -569,7 +548,7 @@ const notificationSchema = new mongoose.Schema(
   {
     storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, enum: ['low_stock', 'equipment_service_due', 'expense_pending', 'return_recorded', 'general'], default: 'general' },
+    type: { type: String, enum: ['low_stock', 'equipment_service_due', 'expense_pending', 'return_recorded', 'production_recorded', 'general'], default: 'general' },
     title: { type: String, required: true },
     message: { type: String, required: true },
     relatedId: mongoose.Schema.Types.ObjectId,
@@ -606,7 +585,113 @@ const damageSchema = new mongoose.Schema(
 
 damageSchema.index({ storeId: 1, timestamp: -1 });
 
+// ============ RAW MATERIAL SCHEMA (Stacey Fountain production inputs) ============
+
+const rawMaterialSchema = new mongoose.Schema(
+  {
+    storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+    name: { type: String, required: true, trim: true },
+    materialKey: {
+      type: String,
+      enum: ['preform_21kg', 'preform_19kg', 'caps', 'labels', 'nylon_roll'],
+      required: true,
+    },
+    productLine: { type: String, enum: ['bottled', 'sachet'], required: true },
+    purchaseUnitName: { type: String, required: true, trim: true },
+    // Editable rather than hardcoded - factory-specific yields (e.g. pieces
+    // per bag/roll) vary by supplier and aren't all known yet.
+    piecesPerPurchaseUnit: { type: Number, required: true, min: 0.0001 },
+    currentStockPurchaseUnits: { type: Number, default: 0, min: 0 },
+    minThresholdPurchaseUnits: { type: Number, default: 0, min: 0 },
+    costPerPurchaseUnit: { type: Number, default: 0, min: 0 },
+    notes: String,
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true, collection: 'raw_materials' }
+);
+
+rawMaterialSchema.index({ storeId: 1, materialKey: 1 }, { unique: true });
+rawMaterialSchema.index({ storeId: 1, productLine: 1 });
+
+// ============ RAW MATERIAL MOVEMENT SCHEMA (ledger, mirrors StockMovement) ============
+
+const rawMaterialMovementSchema = new mongoose.Schema(
+  {
+    storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+    rawMaterialId: { type: mongoose.Schema.Types.ObjectId, ref: 'RawMaterial', required: true },
+    type: { type: String, enum: ['restock_in', 'production_consume', 'adjustment'], required: true },
+    quantityPurchaseUnits: { type: Number, required: true },
+    productionBatchId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductionBatch' },
+    recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    notes: String,
+    timestamp: { type: Date, default: Date.now },
+  },
+  { timestamps: true, collection: 'raw_material_movements' }
+);
+
+rawMaterialMovementSchema.index({ storeId: 1, rawMaterialId: 1, timestamp: -1 });
+
+// ============ PRODUCTION BATCH SCHEMA ============
+
+const productionBatchSchema = new mongoose.Schema(
+  {
+    storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+    productLine: { type: String, enum: ['bottled', 'sachet'], required: true },
+    finishedProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    finishedProductName: String,
+
+    // Bottled-water-only
+    preformMaterialId: { type: mongoose.Schema.Types.ObjectId, ref: 'RawMaterial' },
+    bottlesProduced: { type: Number, default: 0, min: 0 },
+    preformLeakageCount: { type: Number, default: 0, min: 0 },
+    packsProduced: { type: Number, default: 0, min: 0 },
+
+    // Sachet-water-only
+    sachetsProduced: { type: Number, default: 0, min: 0 },
+    sachetLeakageCount: { type: Number, default: 0, min: 0 },
+    bagsProduced: { type: Number, default: 0, min: 0 },
+
+    // Snapshot of what was actually consumed, immune to later edits of a
+    // RawMaterial's piecesPerPurchaseUnit.
+    materialsConsumed: [
+      {
+        rawMaterialId: { type: mongoose.Schema.Types.ObjectId, ref: 'RawMaterial' },
+        materialKey: String,
+        piecesConsumed: Number,
+        purchaseUnitsConsumed: Number,
+      },
+    ],
+
+    recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    recordedByRole: String,
+    notes: String,
+    timestamp: { type: Date, default: Date.now },
+  },
+  { timestamps: true, collection: 'production_batches' }
+);
+
+productionBatchSchema.index({ storeId: 1, productLine: 1, timestamp: -1 });
+
 // ============ EXPORT MODELS ============
+
+// ============ VACCINATION / MEDICATION RECORD SCHEMA (Stacey Farm) ============
+
+const vaccinationRecordSchema = new mongoose.Schema(
+  {
+    storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+    type: { type: String, enum: ['vaccination', 'medication'], required: true },
+    name: { type: String, required: true, trim: true },
+    batchOrFlockLabel: { type: String, trim: true },
+    dosage: { type: String, trim: true },
+    administeredDate: { type: Date, default: Date.now },
+    nextDueDate: Date,
+    administeredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    notes: String,
+  },
+  { timestamps: true, collection: 'vaccination_records' }
+);
+
+vaccinationRecordSchema.index({ storeId: 1, administeredDate: -1 });
 
 const User = mongoose.model('User', userSchema);
 const Store = mongoose.model('Store', storeSchema);
@@ -614,7 +699,6 @@ const Product = mongoose.model('Product', productSchema);
 const Sale = mongoose.model('Sale', saleSchema);
 const StockMovement = mongoose.model('StockMovement', stockMovementSchema);
 const Expense = mongoose.model('Expense', expenseSchema);
-const Attendance = mongoose.model('Attendance', attendanceSchema);
 const Customer = mongoose.model('Customer', customerSchema);
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 const Equipment = mongoose.model('Equipment', equipmentSchema);
@@ -622,6 +706,10 @@ const DriverLocation = mongoose.model('DriverLocation', driverLocationSchema);
 const Return = mongoose.model('Return', returnSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 const Damage = mongoose.model('Damage', damageSchema);
+const RawMaterial = mongoose.model('RawMaterial', rawMaterialSchema);
+const RawMaterialMovement = mongoose.model('RawMaterialMovement', rawMaterialMovementSchema);
+const ProductionBatch = mongoose.model('ProductionBatch', productionBatchSchema);
+const VaccinationRecord = mongoose.model('VaccinationRecord', vaccinationRecordSchema);
 
 module.exports = {
   User,
@@ -630,7 +718,6 @@ module.exports = {
   Sale,
   StockMovement,
   Expense,
-  Attendance,
   Customer,
   ActivityLog,
   Equipment,
@@ -638,4 +725,8 @@ module.exports = {
   Return,
   Notification,
   Damage,
+  RawMaterial,
+  RawMaterialMovement,
+  ProductionBatch,
+  VaccinationRecord,
 };

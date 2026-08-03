@@ -1,0 +1,76 @@
+{
+  "title": "Customers",
+  "subtitle": {
+    "farm": "Manage customer supply schedules and delivery history",
+    "driver": "Customers you have added",
+    "default": "All customers, purchases and token rewards"
+  },
+  "tabs": {
+    "schedule": "Supply Schedule",
+    "directory": "Customer Directory"
+  },
+  "errors": {
+    "nameRequired": "Customer name is required",
+    "selectCustomerProductQuantity": "Select a customer, product name and quantity",
+    "selectCustomer": "Select a customer"
+  },
+  "success": {
+    "customerAdded": "Customer added",
+    "purchaseRecorded": "Purchase recorded",
+    "scheduleSet": "Supply schedule set",
+    "markedSupplied": "Marked as supplied - next date updated"
+  },
+  "form": {
+    "addCustomer": "Add Customer",
+    "recordDeliveryPurchase": "Record a Delivery / Purchase",
+    "namePlaceholder": "Name",
+    "phonePlaceholder": "Phone",
+    "locationPlaceholder": "Location",
+    "selectCustomer": "Select customer",
+    "productPlaceholder": "Product (e.g. Sachet Water Bag)",
+    "quantityPlaceholder": "Quantity",
+    "recordPurchase": "Record Purchase"
+  },
+  "schedule": {
+    "frequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Every 2 Weeks",
+      "monthly": "Monthly"
+    },
+    "addCustomerOption": "Add customer to schedule...",
+    "cratesPerSupplyPlaceholder": "Crates per supply",
+    "addToSchedule": "Add to Schedule",
+    "noLocationSet": "No location set",
+    "cratesPerSupply": "crate(s) per supply",
+    "markSupplied": "Mark Supplied",
+    "overdue": {
+      "heading": "Overdue ({{count}})",
+      "description": "These were due before today and haven't been marked supplied",
+      "empty": "Nothing overdue"
+    },
+    "dueToday": {
+      "heading": "Due Today ({{count}})",
+      "description": "Supply these today",
+      "empty": "Nobody due today"
+    },
+    "upcoming": {
+      "heading": "Upcoming ({{count}})",
+      "description": "Scheduled for later",
+      "empty": "Nothing coming up"
+    }
+  },
+  "table": {
+    "name": "Name",
+    "location": "Location",
+    "sachetBagsLifetime": "Sachet Bags (lifetime)",
+    "bottlesLifetime": "Bottles (lifetime)",
+    "tokens": "Tokens",
+    "freePacksEarned": "Free Packs Earned",
+    "onSchedule": "On Schedule?",
+    "redeem": "Redeem",
+    "noCustomersYet": "No customers yet",
+    "scheduledYes": "Yes",
+    "notScheduled": "Not scheduled"
+  }
+}

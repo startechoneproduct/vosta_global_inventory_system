@@ -1,23 +1,53 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { Sale, Product, Expense, Return, Damage, Customer, DriverLocation, ActivityLog, Store } = require('../models');
+const { Sale, Product, Return, Damage, Customer, DriverLocation, ActivityLog, Store, RawMaterial, ProductionBatch } = require('../models');
 const { verifyToken, resolveStoreScope } = require('../middleware/auth');
+const { rangeFor, computeProfitMetrics, computeInventoryOverview } = require('../utils/analytics');
 
 const router = express.Router();
-
-const PERIOD_TO_DAYS = { '2days': 2, '7days': 7, '1week': 7, '1month': 30, '1year': 365 };
-
-function rangeFor(period) {
-  const days = PERIOD_TO_DAYS[period] || 1; // default: today
-  const end = new Date();
-  const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
-  return { start, end };
-}
 
 function startOfToday() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+// ============ PRODUCTION SUMMARY (Stacey Fountain only) ============
+// Fountain-only raw-material stock + production totals, shared by both the
+// GM and manager/accountant dashboards. `includeMaterials` is only true for
+// the GM view - manager/accountant already see the full materials list on
+// the Production page itself, so their dashboard only needs the totals.
+async function buildProductionSummary(storeId, isFarm, start, end, { includeMaterials }) {
+  if (isFarm) return null;
+
+  const [materials, batches] = await Promise.all([
+    includeMaterials ? RawMaterial.find({ storeId, isActive: true }) : Promise.resolve([]),
+    ProductionBatch.find({ storeId, timestamp: { $gte: start, $lte: end } }),
+  ]);
+
+  const bottledBatches = batches.filter((b) => b.productLine === 'bottled');
+  const sachetBatches = batches.filter((b) => b.productLine === 'sachet');
+
+  return {
+    rawMaterials: materials.map((m) => ({
+      materialKey: m.materialKey,
+      name: m.name,
+      purchaseUnitName: m.purchaseUnitName,
+      currentStockPurchaseUnits: m.currentStockPurchaseUnits,
+      currentStockPieces: m.currentStockPurchaseUnits * m.piecesPerPurchaseUnit,
+      lowStock: m.currentStockPurchaseUnits <= m.minThresholdPurchaseUnits,
+    })),
+    bottled: {
+      bottlesProducedPeriod: bottledBatches.reduce((sum, b) => sum + b.bottlesProduced, 0),
+      packsProducedPeriod: bottledBatches.reduce((sum, b) => sum + b.packsProduced, 0),
+      preformLeakageCountPeriod: bottledBatches.reduce((sum, b) => sum + b.preformLeakageCount, 0),
+    },
+    sachet: {
+      sachetsProducedPeriod: sachetBatches.reduce((sum, b) => sum + b.sachetsProduced, 0),
+      bagsProducedPeriod: sachetBatches.reduce((sum, b) => sum + b.bagsProduced, 0),
+      sachetLeakageCountPeriod: sachetBatches.reduce((sum, b) => sum + b.sachetLeakageCount, 0),
+    },
+  };
 }
 
 // ============ GM / OWNER DASHBOARD ============
@@ -30,14 +60,14 @@ async function buildGmDashboard(storeId, period) {
   const store = await Store.findById(storeId);
   const isFarm = store?.type === 'farm';
 
-  const [todaySales, rangeSales, products, expenses, returnsInPeriod, damagesInPeriod] = await Promise.all([
+  const [todaySales, products, profitMetrics, inventoryOverview] = await Promise.all([
     Sale.find({ storeId, timestamp: { $gte: todayStart } }),
-    Sale.find({ storeId, timestamp: { $gte: start, $lte: end } }),
     Product.find({ storeId }),
-    Expense.find({ storeId, timestamp: { $gte: start, $lte: end } }),
-    isFarm ? Promise.resolve([]) : Return.find({ storeId, timestamp: { $gte: start, $lte: end } }),
-    isFarm ? Damage.find({ storeId, timestamp: { $gte: start, $lte: end } }) : Promise.resolve([]),
+    computeProfitMetrics(storeId, isFarm, start, end),
+    computeInventoryOverview(storeId, start, end),
   ]);
+
+  const { rangeSales, expenses, revenue, cogs, writeOffValue, writeOffLabel, approvedExpenseTotal, grossProfit, netProfit, totalExpense } = profitMetrics;
 
   const totalSalesToday = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
 
@@ -78,43 +108,6 @@ async function buildGmDashboard(storeId, period) {
     unitsSoldInPeriod: unitsSoldByProduct[p.name] || 0,
   }));
 
-  // ============ REAL PROFIT / LOSS CALCULATION ============
-  //
-  //   Gross Profit = Revenue - Write-Off Value - Cost of Goods Sold
-  //   Net Profit   = Gross Profit - Approved Expenses
-  //
-  // Fountain's write-off value comes from Returns (money given back on a
-  // sale that didn't stick, approximated at current price). Farm's
-  // write-off value comes from Damages (cost of eggs/stock that never sold
-  // at all, valued at cost price since there was never a sale to reverse).
-  const revenue = rangeSales.reduce((sum, s) => sum + s.totalAmount, 0);
-  const cogs = rangeSales.reduce((sum, s) => sum + (s.costOfGoods || 0), 0);
-
-  const priceByProductId = {};
-  for (const p of products) priceByProductId[p._id.toString()] = p.pricePerUnit;
-
-  const returnsValue = returnsInPeriod.reduce((sum, r) => {
-    // Prefer the price captured at the moment the return was recorded, so
-    // a later price change doesn't retroactively change a past period's
-    // write-off value. Only falls back to the current price for legacy
-    // records created before pricePerUnit was snapshotted on Return.
-    const price = r.pricePerUnit || priceByProductId[r.productId?.toString()] || 0;
-    return sum + price * r.quantity;
-  }, 0);
-
-  // Damage cost was already captured per-record at the time it was logged
-  // (see damageRoute.js), so this just sums what's already there.
-  const damageValue = damagesInPeriod.reduce((sum, d) => sum + (d.costValue || 0), 0);
-
-  const writeOffValue = isFarm ? damageValue : returnsValue;
-
-  const approvedExpenseTotal = expenses
-    .filter((e) => e.approvalStatus === 'approved')
-    .reduce((sum, e) => sum + e.amount, 0);
-
-  const grossProfit = revenue - writeOffValue - cogs;
-  const netProfit = grossProfit - approvedExpenseTotal;
-
   const profit = netProfit > 0 ? netProfit : 0;
   const loss = netProfit < 0 ? Math.abs(netProfit) : 0;
 
@@ -125,9 +118,18 @@ async function buildGmDashboard(storeId, period) {
   }
   const expensePieChart = Object.entries(expenseByCategory).map(([category, total]) => ({ category, total }));
 
+  const [productionSummary, returnsInPeriod, damagesInPeriod] = await Promise.all([
+    buildProductionSummary(storeId, isFarm, start, end, { includeMaterials: true }),
+    isFarm ? Promise.resolve([]) : Return.find({ storeId, timestamp: { $gte: start, $lte: end } }),
+    isFarm ? Damage.find({ storeId, timestamp: { $gte: start, $lte: end } }) : Promise.resolve([]),
+  ]);
+  const writeOffCount = isFarm ? damagesInPeriod.length : returnsInPeriod.length;
+
   return {
     period,
     storeType: store?.type,
+    productionSummary,
+    inventoryOverview,
     totalSalesToday,
     salesTrend,
     totalStock,
@@ -141,18 +143,18 @@ async function buildGmDashboard(storeId, period) {
       // Generic label for the frontend to use regardless of store type -
       // "Returns Value" for Fountain, "Damage Write-Off" for Farm.
       writeOffValue,
-      writeOffLabel: isFarm ? 'Damaged Stock (Write-Off)' : 'Returns Value',
+      writeOffLabel,
       costOfGoodsSold: cogs,
       approvedExpenses: approvedExpenseTotal,
       grossProfit,
       netProfit,
     },
-    totalExpense: expenses.reduce((sum, e) => sum + e.amount, 0),
+    totalExpense,
     expensePieChart,
     // Generic count field, labeled appropriately by the frontend based on storeType.
-    writeOffCount: isFarm ? damagesInPeriod.length : returnsInPeriod.length,
+    writeOffCount,
     // Kept for backward compatibility with the existing Fountain dashboard UI.
-    returnsCount: isFarm ? damagesInPeriod.length : returnsInPeriod.length,
+    returnsCount: writeOffCount,
   };
 }
 
@@ -164,13 +166,14 @@ async function buildManagerDashboard(storeId, period) {
   const store = await Store.findById(storeId);
   const isFarm = store?.type === 'farm';
 
-  const [todaySales, rangeSales, products, writeOffCount] = await Promise.all([
+  const [todaySales, rangeSales, products, writeOffCount, inventoryOverview] = await Promise.all([
     Sale.find({ storeId, timestamp: { $gte: todayStart } }),
     Sale.find({ storeId, timestamp: { $gte: start, $lte: end } }),
     Product.find({ storeId }),
     isFarm
       ? Damage.countDocuments({ storeId, timestamp: { $gte: start, $lte: end } })
       : Return.countDocuments({ storeId, timestamp: { $gte: start, $lte: end } }),
+    computeInventoryOverview(storeId, start, end),
   ]);
 
   const totalSalesToday = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
@@ -185,9 +188,13 @@ async function buildManagerDashboard(storeId, period) {
     .sort(([a], [b]) => (a > b ? 1 : -1))
     .map(([date, total]) => ({ date, total }));
 
+  const productionSummary = await buildProductionSummary(storeId, isFarm, start, end, { includeMaterials: false });
+
   return {
     period,
     storeType: store?.type,
+    productionSummary,
+    inventoryOverview,
     totalSalesToday,
     totalStock,
     returnsCount: writeOffCount,

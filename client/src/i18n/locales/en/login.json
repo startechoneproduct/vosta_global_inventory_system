@@ -1,0 +1,18 @@
+{
+  "brand": "Stacey POS",
+  "tagline": "Manage your Stacey Fountain and Stacey Farm operations with ease. Inventory, sales, and reporting all in one place.",
+  "featureInventory": "Real-time inventory tracking",
+  "featureMultiLocation": "Multi-location management",
+  "featureReporting": "Comprehensive reporting",
+  "subtitle": "Point of Sale Management System",
+  "welcomeBack": "Welcome back",
+  "signInPrompt": "Sign in to your account to continue",
+  "emailLabel": "Email address",
+  "emailPlaceholder": "you@example.com",
+  "passwordLabel": "Password",
+  "passwordPlaceholder": "********",
+  "signIn": "Sign in",
+  "signingIn": "Signing in...",
+  "loginFailed": "Login failed. Please try again.",
+  "copyright": "© 2026 Stacey Enterprises. All rights reserved."
+}

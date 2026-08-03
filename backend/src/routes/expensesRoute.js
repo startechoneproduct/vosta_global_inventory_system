@@ -1,6 +1,7 @@
 const express = require('express');
 const { verifyToken, authorize, resolveStoreScope } = require('../middleware/auth');
 const { Expense, Store } = require('../models');
+const { rangeFor, computeProfitMetrics } = require('../utils/analytics');
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
 // "Maintenance" and "Misc" are generic and shared across both; the rest are
 // store-specific (Fountain's bottling-line supplies vs Farm's feed/medication).
 const FOUNTAIN_CATEGORIES = ['Fuel', 'Caps', 'Bottle Preforms', 'Nylon', 'Filters', 'AEDC', 'Labels', 'Salaries', 'Maintenance', 'Misc'];
-const FARM_CATEGORIES = ['Layer Mash', 'Grower Mash', 'Feeds', 'Vaccination', 'Medication', 'Day-Old Chicks', 'Salaries', 'Maintenance', 'Misc'];
+const FARM_CATEGORIES = ['Layer Mash', 'Grower Mash', 'Layer Feed Bag', 'Grower Feed Bag', 'Feeds', 'Vaccination', 'Medication', 'Day-Old Chicks', 'Salaries', 'Maintenance', 'Misc'];
 
 function categoriesForStoreType(storeType) {
   return storeType === 'farm' ? FARM_CATEGORIES : FOUNTAIN_CATEGORIES;
@@ -92,7 +93,11 @@ router.get('/', verifyToken, resolveStoreScope, async (req, res, next) => {
       if (endDate) query.timestamp.$lte = new Date(endDate);
     }
 
+    // Always populate recordedBy/approvedBy - the frontend decides who to
+    // show the approver identity to (owner/GM only).
     const expenses = await Expense.find(query)
+      .populate('recordedBy', 'fullName role')
+      .populate('approvedBy', 'fullName role')
       .sort({ timestamp: -1 })
       .limit(200);
 
@@ -105,8 +110,48 @@ router.get('/', verifyToken, resolveStoreScope, async (req, res, next) => {
   }
 });
 
+// ============ EXPENSE OVERVIEW ANALYTICS ============
+router.get('/analytics', verifyToken, resolveStoreScope, async (req, res, next) => {
+  try {
+    const { period = '7days' } = req.query;
+    const { start, end } = rangeFor(period);
+    const storeId = req.storeId;
+
+    const store = await Store.findById(storeId);
+    const isFarm = store?.type === 'farm';
+
+    const { revenue, totalExpense, profitMarginPct, expenses } = await computeProfitMetrics(storeId, isFarm, start, end);
+
+    const byExpenseTypeMap = {};
+    for (const e of expenses) {
+      byExpenseTypeMap[e.category] = (byExpenseTypeMap[e.category] || 0) + e.amount;
+    }
+    const byExpenseType = Object.entries(byExpenseTypeMap)
+      .map(([category, total]) => ({
+        category,
+        total,
+        percentOfTotal: totalExpense > 0 ? (total / totalExpense) * 100 : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    res.json({
+      success: true,
+      data: {
+        period,
+        totalExpense,
+        profitMarginPct,
+        expenseTransactionCount: expenses.length,
+        byExpenseType,
+        totalSalesVsExpense: { sales: revenue, expenses: totalExpense },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ============ APPROVE EXPENSE ============
-router.put('/:expenseId/approve', verifyToken, resolveStoreScope, authorize('general_manager', 'owner'), async (req, res, next) => {
+router.put('/:expenseId/approve', verifyToken, resolveStoreScope, authorize('general_manager', 'owner', 'manager'), async (req, res, next) => {
   try {
     const expense = await Expense.findOneAndUpdate(
       { _id: req.params.expenseId, storeId: req.storeId },

@@ -1,0 +1,43 @@
+{
+  "title": "Staff Management",
+  "subtitle": "Add staff, assign roles, and generate login credentials",
+  "managingForStore": "You are viewing and adding staff for: {{store}}. New staff will only see this store's dashboard.",
+  "errors": {
+    "emailAndNameRequired": "Email and full name are required"
+  },
+  "success": {
+    "staffAdded": "Staff added. Login details emailed to them.",
+    "passwordReset": "Password reset. New temporary password: {{password}}"
+  },
+  "tempPasswordLabel": "Temp password: {{password}}",
+  "form": {
+    "fullNamePlaceholder": "Full name",
+    "emailPlaceholder": "Email",
+    "phonePlaceholder": "Phone",
+    "addStaffButton": "Add Staff & Generate Password"
+  },
+  "table": {
+    "colName": "Name",
+    "colEmail": "Email",
+    "colRole": "Role",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "noStaff": "No staff added yet"
+  },
+  "status": {
+    "active": "active",
+    "inactive": "inactive"
+  },
+  "actions": {
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "resetPassword": "Reset Password"
+  },
+  "roles": {
+    "general_manager": "general manager",
+    "manager": "manager",
+    "accountant": "accountant",
+    "driver": "driver",
+    "supervisor": "supervisor"
+  }
+}

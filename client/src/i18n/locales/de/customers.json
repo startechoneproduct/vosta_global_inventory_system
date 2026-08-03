@@ -1,0 +1,76 @@
+{
+  "title": "Kunden",
+  "subtitle": {
+    "farm": "Lieferpläne und Lieferhistorie der Kunden verwalten",
+    "driver": "Von Ihnen hinzugefügte Kunden",
+    "default": "Alle Kunden, Käufe und Treuepunkte"
+  },
+  "tabs": {
+    "schedule": "Lieferplan",
+    "directory": "Kundenverzeichnis"
+  },
+  "errors": {
+    "nameRequired": "Kundenname ist erforderlich",
+    "selectCustomerProductQuantity": "Kunde, Produktname und Menge auswählen",
+    "selectCustomer": "Kunde auswählen"
+  },
+  "success": {
+    "customerAdded": "Kunde hinzugefügt",
+    "purchaseRecorded": "Kauf erfasst",
+    "scheduleSet": "Lieferplan festgelegt",
+    "markedSupplied": "Als beliefert markiert - nächstes Datum aktualisiert"
+  },
+  "form": {
+    "addCustomer": "Kunde hinzufügen",
+    "recordDeliveryPurchase": "Lieferung / Kauf erfassen",
+    "namePlaceholder": "Name",
+    "phonePlaceholder": "Telefon",
+    "locationPlaceholder": "Standort",
+    "selectCustomer": "Kunde auswählen",
+    "productPlaceholder": "Produkt (z. B. Wasserbeutel)",
+    "quantityPlaceholder": "Menge",
+    "recordPurchase": "Kauf erfassen"
+  },
+  "schedule": {
+    "frequencies": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle 2 Wochen",
+      "monthly": "Monatlich"
+    },
+    "addCustomerOption": "Kunde zum Lieferplan hinzufügen...",
+    "cratesPerSupplyPlaceholder": "Kisten pro Lieferung",
+    "addToSchedule": "Zum Lieferplan hinzufügen",
+    "noLocationSet": "Kein Standort angegeben",
+    "cratesPerSupply": "Kiste(n) pro Lieferung",
+    "markSupplied": "Als beliefert markieren",
+    "overdue": {
+      "heading": "Überfällig ({{count}})",
+      "description": "Diese waren vor heute fällig und wurden noch nicht als beliefert markiert",
+      "empty": "Nichts überfällig"
+    },
+    "dueToday": {
+      "heading": "Heute fällig ({{count}})",
+      "description": "Diese heute beliefern",
+      "empty": "Heute niemand fällig"
+    },
+    "upcoming": {
+      "heading": "Bevorstehend ({{count}})",
+      "description": "Für später geplant",
+      "empty": "Nichts bevorstehend"
+    }
+  },
+  "table": {
+    "name": "Name",
+    "location": "Standort",
+    "sachetBagsLifetime": "Wasserbeutel (gesamt)",
+    "bottlesLifetime": "Flaschen (gesamt)",
+    "tokens": "Punkte",
+    "freePacksEarned": "Gratispakete erhalten",
+    "onSchedule": "Im Lieferplan?",
+    "redeem": "Einlösen",
+    "noCustomersYet": "Noch keine Kunden",
+    "scheduledYes": "Ja",
+    "notScheduled": "Nicht geplant"
+  }
+}

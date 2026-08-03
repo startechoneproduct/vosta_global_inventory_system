@@ -8,7 +8,6 @@ const authRoutes = require('./src/routes/authRoute.js');
 const salesRoute = require('./src/routes/salesRoute.js');
 const stockRoute = require('./src/routes/stockRoute.js');
 const expensesRoute = require('./src/routes/expensesRoute.js');
-const attendanceRoute = require('./src/routes/attendanceRoute.js');
 const productRoute = require('./src/routes/productRoute.js');
 const storeRoute = require('./src/routes/storeRoute.js');
 const activityLogRoute = require('./src/routes/activityLog.js');
@@ -19,6 +18,12 @@ const returnRoute = require('./src/routes/returnRoute.js');
 const staffRoute = require('./src/routes/staffRoute.js');
 const equipmentRoute = require('./src/routes/equipmentRoute.js');
 const damageRoute = require('./src/routes/damageRoutes.js');
+const rawMaterialRoute = require('./src/routes/rawMaterialRoutes.js');
+const productionRoute = require('./src/routes/productionRoutes.js');
+const vaccinationRoute = require('./src/routes/vaccinationRoutes.js');
+const exchangeRateRoute = require('./src/routes/exchangeRateRoute.js');
+const { refreshExchangeRate } = require('./src/utils/exchangeRate');
+const cron = require('node-cron');
 const axios = require('axios');
 
 const app = express();
@@ -58,6 +63,12 @@ app.use(cookieParser());
 
 connectDB();
 
+// ============ EXCHANGE RATE (NGN -> EUR) ============
+// Fetched on boot and refreshed every 6 hours so /api/exchange-rate always
+// serves a cached value instantly instead of hitting the upstream API per-request.
+refreshExchangeRate();
+cron.schedule('0 */6 * * *', refreshExchangeRate);
+
 // ============ ROUTES ============
 
 app.get('/api/health', (req, res) => {
@@ -94,7 +105,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoute);
 app.use('/api/stock', stockRoute);
 app.use('/api/expenses', expensesRoute);
-app.use('/api/attendance', attendanceRoute);
 app.use('/api/products', productRoute);
 app.use('/api/stores', storeRoute);
 app.use('/api/activity-log', activityLogRoute);
@@ -105,6 +115,10 @@ app.use('/api/returns', returnRoute);
 app.use('/api/staff', staffRoute);
 app.use('/api/equipment', equipmentRoute);
 app.use('/api/damages', damageRoute);
+app.use('/api/raw-materials', rawMaterialRoute);
+app.use('/api/production', productionRoute);
+app.use('/api/vaccination', vaccinationRoute);
+app.use('/api/exchange-rate', exchangeRateRoute);
 
 app.use((req, res) => {
   res.status(404).json({

@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 export default function ChangePassword({ onSuccess }) {
+  const { t } = useTranslation('changePassword');
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -11,15 +13,15 @@ export default function ChangePassword({ onSuccess }) {
     setError('');
 
     if (!form.currentPassword || !form.newPassword) {
-      setError('Current and new password are required');
+      setError(t('errors.requiredFields'));
       return;
     }
     if (form.newPassword.length < 8) {
-      setError('New password must be at least 8 characters');
+      setError(t('errors.passwordTooShort'));
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
-      setError('New passwords do not match');
+      setError(t('errors.passwordsDoNotMatch'));
       return;
     }
 
@@ -40,9 +42,9 @@ export default function ChangePassword({ onSuccess }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Set a new password</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('heading')}</h2>
         <p className="text-gray-500 text-sm mb-6">
-          Your account was created with a temporary password. Please set your own password before continuing.
+          {t('subtitle')}
         </p>
 
         {error && (
@@ -51,7 +53,7 @@ export default function ChangePassword({ onSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Temporary / Current Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('currentPasswordLabel')}</label>
             <input
               type="password"
               className="input-field"
@@ -61,7 +63,7 @@ export default function ChangePassword({ onSuccess }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('newPasswordLabel')}</label>
             <input
               type="password"
               className="input-field"
@@ -71,7 +73,7 @@ export default function ChangePassword({ onSuccess }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('confirmPasswordLabel')}</label>
             <input
               type="password"
               className="input-field"
@@ -81,7 +83,7 @@ export default function ChangePassword({ onSuccess }) {
             />
           </div>
           <button type="submit" disabled={loading} className="w-full btn-primary disabled:opacity-50">
-            {loading ? 'Updating...' : 'Update Password'}
+            {loading ? t('updating') : t('updatePassword')}
           </button>
         </form>
       </div>

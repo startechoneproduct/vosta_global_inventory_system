@@ -32,12 +32,13 @@ router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
     });
 
     if (restock) {
-      await Product.findByIdAndUpdate(productId, { $inc: { currentStock: quantity } });
+      const updated = await Product.findByIdAndUpdate(productId, { $inc: { currentStock: quantity } }, { new: true });
       await StockMovement.create({
         storeId,
         productId,
         type: 'return_in',
         quantity,
+        balanceAfter: updated?.currentStock,
         recordedBy: req.user.userId,
         notes: `Return: ${reason || 'no reason given'}`,
         timestamp: new Date(),

@@ -1,8 +1,10 @@
 const iconPaths = {
-  attendance: (
+  movement: (
     <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
+      <path d="M16 3h5v5" />
+      <path d="M21 3 13 11" />
+      <path d="M9 21H4a1 1 0 0 1-1-1v-5" />
+      <path d="M3 15 11 7" />
     </>
   ),
   bell: (
@@ -151,6 +153,16 @@ const iconPaths = {
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
       <path d="M12 9v4" />
       <path d="M12 17h.01" />
+    </>
+  ),
+  vaccination: (
+    <>
+      <path d="m18 2 4 4" />
+      <path d="m17 7 3-3" />
+      <path d="M19 9 8.7 19.3a2.41 2.41 0 0 1-3.4 0l-.6-.6a2.41 2.41 0 0 1 0-3.4L15 5" />
+      <path d="m9 11 4 4" />
+      <path d="m5 19-3 3" />
+      <path d="m14 4 6 6" />
     </>
   ),
 };

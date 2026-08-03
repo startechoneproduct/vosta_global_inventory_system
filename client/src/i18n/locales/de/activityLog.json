@@ -1,0 +1,18 @@
+{
+  "title": "Aktivitätsprotokoll",
+  "subtitleGm": "Jedes verkaufte Produkt, unabhängig davon, wer es verkauft hat",
+  "subtitleStaff": "Ihre eigenen Verkaufsaktivitäten",
+  "colDate": "Datum",
+  "colProduct": "Produkt",
+  "colQuantity": "Menge",
+  "colAction": "Aktion",
+  "colSoldBy": "Verkauft von",
+  "loading": "Wird geladen...",
+  "noActivity": "Noch keine Aktivitäten erfasst",
+  "actions": {
+    "sold": "Verkauft",
+    "returned": "Zurückgegeben",
+    "stockIn": "Wareneingang",
+    "stockOut": "Warenausgang"
+  }
+}

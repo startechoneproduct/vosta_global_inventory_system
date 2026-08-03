@@ -1,7 +1,8 @@
 const express = require('express');
-const { Product, StockMovement } = require('../models/index.js');
+const { Product, StockMovement, Store } = require('../models/index.js');
 const { verifyToken, resolveStoreScope, authorize } = require('../middleware/auth');
 const { notifyStoreLeadership } = require('../utils/notify');
+const { rangeFor, computeInventoryOverview } = require('../utils/analytics');
 
 const router = express.Router();
 
@@ -41,6 +42,7 @@ router.post('/in', verifyToken, resolveStoreScope, canEditStock, async (req, res
       productId,
       type: 'in',
       quantity,
+      balanceAfter: updated.currentStock,
       recordedBy: req.user.userId,
       notes,
       timestamp: new Date(),
@@ -97,6 +99,7 @@ router.post('/out', verifyToken, resolveStoreScope, canEditStock, async (req, re
       productId,
       type: 'out',
       quantity,
+      balanceAfter: updated.currentStock,
       recordedBy: req.user.userId,
       notes,
       timestamp: new Date(),
@@ -168,7 +171,7 @@ router.get('/products', verifyToken, resolveStoreScope, async (req, res, next) =
   }
 });
 
-// ============ GET STOCK MOVEMENTS ============
+// ============ GET STOCK MOVEMENTS (Inventory Movement ledger) ============
 router.get('/movements', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
     const { productId, type, startDate, endDate } = req.query;
@@ -183,24 +186,48 @@ router.get('/movements', verifyToken, resolveStoreScope, async (req, res, next) 
       if (endDate) query.timestamp.$lte = new Date(endDate);
     }
 
-    const movements = await StockMovement.find(query)
-      .populate('productId', 'name sku')
-      .sort({ timestamp: -1 })
-      .limit(200);
+    const [movements, store] = await Promise.all([
+      StockMovement.find(query)
+        .populate('productId', 'name sku')
+        .populate('recordedBy', 'fullName role')
+        .sort({ timestamp: -1 })
+        .limit(200),
+      Store.findById(req.storeId),
+    ]);
+
+    // Simplified IN/OUT label for the Inventory Movement table, alongside
+    // the raw type so the UI can show something more specific if it wants to.
+    const IN_TYPES = ['in', 'return_in', 'production_in'];
+    const data = movements.map((m) => ({
+      ...m.toObject(),
+      direction: IN_TYPES.includes(m.type) ? 'in' : 'out',
+      storeName: store?.name,
+    }));
 
     res.json({
       success: true,
-      data: movements,
+      data,
     });
   } catch (error) {
     next(error);
   }
 });
 
-// ============ INVENTORY ANALYTICS (stock health, levels) ============
+// ============ INVENTORY ANALYTICS (stock health, levels, overview) ============
 router.get('/analytics', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
-    const products = await Product.find({ storeId: req.storeId });
+    const { period = '30days' } = req.query;
+    // Overview cards (stock in/out, turnover, etc.) are computed for a
+    // period; the byStatus/products breakdown below is a point-in-time
+    // snapshot regardless of period, matching prior behavior.
+    const days = period === '7days' ? 7 : period === '1year' ? 365 : 30;
+    const end = new Date();
+    const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
+
+    const [products, overview] = await Promise.all([
+      Product.find({ storeId: req.storeId }),
+      computeInventoryOverview(req.storeId, start, end),
+    ]);
 
     const byStatus = { healthy: 0, low_stock: 0, out_of_stock: 0 };
     const totalUnits = products.reduce((sum, p) => sum + p.currentStock, 0);
@@ -219,7 +246,12 @@ router.get('/analytics', verifyToken, resolveStoreScope, async (req, res, next) 
 
     res.json({
       success: true,
-      data: { totalUnits, byStatus, products: productBreakdown },
+      data: {
+        totalUnits,
+        byStatus,
+        products: productBreakdown,
+        overview,
+      },
     });
   } catch (error) {
     next(error);

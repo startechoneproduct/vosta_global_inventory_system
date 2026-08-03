@@ -1,0 +1,17 @@
+{
+  "title": "Returns",
+  "subtitle": "Record product returns",
+  "selectProduct": "Select Product",
+  "quantity": "Quantity",
+  "reasonOptional": "Reason (optional)",
+  "recordReturn": "Record Return",
+  "recentReturns": "Recent Returns",
+  "colDate": "Date",
+  "colProduct": "Product",
+  "colQty": "Qty",
+  "colReason": "Reason",
+  "colRecordedBy": "Recorded By",
+  "noneRecorded": "No returns recorded yet",
+  "selectProductAndQuantity": "Select a product and enter a quantity",
+  "returnRecorded": "Return recorded and stock updated"
+}

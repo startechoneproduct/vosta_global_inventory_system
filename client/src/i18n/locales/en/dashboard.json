@@ -1,0 +1,84 @@
+{
+  "title": "Dashboard",
+  "loadError": "Failed to load dashboard",
+  "roleOverviewSuffix": "overview",
+  "left": "left",
+  "lowStockAlert": "Low stock alert",
+  "periods": {
+    "twoDays": "2 Days",
+    "sevenDays": "7 Days",
+    "oneWeek": "1 Week",
+    "oneMonth": "1 Month",
+    "oneYear": "1 Year"
+  },
+  "driver": {
+    "myCustomers": "My Customers",
+    "productsSoldWeek": "Products Sold (Week)",
+    "productsSoldMonth": "Products Sold (Month)",
+    "productsSoldYear": "Products Sold (Year)",
+    "distanceCoveredWeek": "Distance Covered (Week)",
+    "distanceCoveredMonth": "Distance Covered (Month)",
+    "distanceCoveredYear": "Distance Covered (Year)",
+    "returns": "Returns"
+  },
+  "stats": {
+    "todaysSales": "Today's Sales",
+    "totalStock": "Total Stock",
+    "profitPeriod": "Profit (period)",
+    "lossPeriod": "Loss (period)",
+    "totalExpense": "Total Expense",
+    "damagedEggs": "Damaged/Broken Eggs",
+    "returns": "Returns"
+  },
+  "charts": {
+    "salesStockTrend": "Sales / Stock Trend",
+    "salesTrend": "Sales Trend",
+    "bestSellingProducts": "Best Selling Products",
+    "stockHealthByProduct": "Stock Health by Product",
+    "expensesByCategory": "Expenses by Category",
+    "noExpenses": "No expenses recorded in this period."
+  },
+  "stockHealth": {
+    "inStock": "in stock",
+    "soldThisPeriod": "sold this period"
+  },
+  "status": {
+    "healthy": "healthy",
+    "low_stock": "low stock",
+    "out_of_stock": "out of stock"
+  },
+  "inventorySummary": {
+    "title": "Inventory Summary",
+    "stockIn": "Stock In",
+    "stockOut": "Stock Out",
+    "stockOutRate": "Stock Out Rate",
+    "lowStockItems": "Low Stock Items",
+    "inventoryTurnover": "Inventory Turnover"
+  },
+  "production": {
+    "title": "Production (Stacey Fountain)",
+    "pcs": "pcs",
+    "lowStock": "LOW STOCK",
+    "bottledWaterPeriod": "Bottled Water (period)",
+    "packs": "packs",
+    "bottles": "bottles",
+    "preformsLeaked": "preforms leaked",
+    "sachetWaterPeriod": "Sachet Water (period)",
+    "bags": "bags",
+    "sachets": "sachets",
+    "sachetsLeaked": "sachets leaked"
+  },
+  "profitBreakdown": {
+    "toggle": "How is profit/loss calculated?",
+    "revenue": "Revenue",
+    "returnsValue": "Returns Value",
+    "costOfGoodsSold": "Cost of Goods Sold",
+    "grossProfit": "Gross Profit",
+    "approvedExpenses": "Approved Expenses",
+    "netProfit": "Net Profit",
+    "netLoss": "Net Loss",
+    "damagedStockNote": "Damaged stock is valued at cost price, since it was written off before ever being sold.",
+    "returnsValueNote": "Returns Value uses the product's price at the moment the return was recorded, so later price changes don't affect past periods.",
+    "cogsNote": "Cost of Goods Sold only reflects products that have a cost price set."
+  }
+}

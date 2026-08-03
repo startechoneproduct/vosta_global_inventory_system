@@ -1,0 +1,17 @@
+{
+  "title": "Rücksendungen",
+  "subtitle": "Produktretouren erfassen",
+  "selectProduct": "Produkt auswählen",
+  "quantity": "Menge",
+  "reasonOptional": "Grund (optional)",
+  "recordReturn": "Rücksendung erfassen",
+  "recentReturns": "Aktuelle Rücksendungen",
+  "colDate": "Datum",
+  "colProduct": "Produkt",
+  "colQty": "Menge",
+  "colReason": "Grund",
+  "colRecordedBy": "Erfasst von",
+  "noneRecorded": "Noch keine Rücksendungen erfasst",
+  "selectProductAndQuantity": "Wählen Sie ein Produkt aus und geben Sie eine Menge ein",
+  "returnRecorded": "Rücksendung erfasst und Bestand aktualisiert"
+}

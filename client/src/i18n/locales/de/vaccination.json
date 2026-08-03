@@ -1,0 +1,27 @@
+{
+  "title": "Impfung & Medikation",
+  "subtitle": "Verfolgen Sie Impfstoffe und Medikamente, die den Vögeln verabreicht wurden",
+  "notAvailable": "Die Impf-/Medikationsverfolgung ist nur für Stacey Farm verfügbar.",
+  "types": {
+    "vaccination": "Impfung",
+    "medication": "Medikation"
+  },
+  "namePlaceholder": "Name des Impfstoffs / Medikaments",
+  "batchOrFlockPlaceholder": "Charge / Herdenbezeichnung (optional)",
+  "dosagePlaceholder": "Dosierung (optional)",
+  "administeredDate": "Verabreichungsdatum",
+  "nextDueDate": "Nächstes Fälligkeitsdatum (optional)",
+  "notesOptional": "Notizen (optional)",
+  "saveRecord": "Eintrag speichern",
+  "recentRecords": "Letzte Einträge",
+  "colDate": "Datum",
+  "colType": "Typ",
+  "colName": "Name",
+  "colBatchFlock": "Charge/Herde",
+  "colDosage": "Dosierung",
+  "colNextDue": "Nächste Fälligkeit",
+  "colRecordedBy": "Erfasst von",
+  "noRecords": "Noch keine Einträge",
+  "enterName": "Geben Sie einen Impfstoff- oder Medikamentennamen ein",
+  "recordSaved": "Eintrag gespeichert"
+}

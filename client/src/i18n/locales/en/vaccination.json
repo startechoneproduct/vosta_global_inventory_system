@@ -1,0 +1,27 @@
+{
+  "title": "Vaccination & Medication",
+  "subtitle": "Track vaccines and medications administered to the birds",
+  "notAvailable": "Vaccination/medication tracking is only available for Stacey Farm.",
+  "types": {
+    "vaccination": "Vaccination",
+    "medication": "Medication"
+  },
+  "namePlaceholder": "Vaccine / Medication name",
+  "batchOrFlockPlaceholder": "Batch / Flock label (optional)",
+  "dosagePlaceholder": "Dosage (optional)",
+  "administeredDate": "Administered date",
+  "nextDueDate": "Next due date (optional)",
+  "notesOptional": "Notes (optional)",
+  "saveRecord": "Save Record",
+  "recentRecords": "Recent Records",
+  "colDate": "Date",
+  "colType": "Type",
+  "colName": "Name",
+  "colBatchFlock": "Batch/Flock",
+  "colDosage": "Dosage",
+  "colNextDue": "Next Due",
+  "colRecordedBy": "Recorded By",
+  "noRecords": "No records yet",
+  "enterName": "Enter a vaccine or medication name",
+  "recordSaved": "Record saved"
+}

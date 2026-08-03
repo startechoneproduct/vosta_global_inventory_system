@@ -1,0 +1,61 @@
+{
+  "title": "Ausgaben",
+  "subtitle": "Geschäftsausgaben erfassen und verwalten",
+  "tabs": {
+    "record": "Erfassen & Verfolgen",
+    "overview": "Ausgabenübersicht"
+  },
+  "recordExpense": "Ausgabe erfassen",
+  "form": {
+    "category": "Kategorie",
+    "selectCategory": "Kategorie auswählen",
+    "amount": "Betrag (₦)",
+    "amountPlaceholder": "0,00",
+    "description": "Beschreibung",
+    "descriptionPlaceholder": "Ausgabendetails eingeben...",
+    "recording": "Wird erfasst...",
+    "submit": "Ausgabe erfassen"
+  },
+  "expensesListTitle": "Ausgaben",
+  "filter": {
+    "all": "Alle",
+    "pending": "Ausstehend",
+    "approved": "Genehmigt"
+  },
+  "noExpensesFound": "Keine Ausgaben gefunden",
+  "recordedBy": "Erfasst von {{name}}",
+  "approvedBy": "Genehmigt von {{name}}",
+  "unknown": "Unbekannt",
+  "approve": "Genehmigen",
+  "status": {
+    "pending": "Ausstehend",
+    "approved": "Genehmigt",
+    "rejected": "Abgelehnt"
+  },
+  "messages": {
+    "expenseRecordedStatus": "Ausgabe erfasst. Status: {{status}}",
+    "expenseApproved": "Ausgabe genehmigt",
+    "failedToLoadExpenses": "Ausgaben konnten nicht geladen werden",
+    "failedToLoadAnalytics": "Ausgabenanalyse konnte nicht geladen werden"
+  },
+  "overview": {
+    "periods": {
+      "2days": "2 Tage",
+      "7days": "7 Tage",
+      "1month": "1 Monat",
+      "1year": "1 Jahr"
+    },
+    "totalExpenses": "Gesamtausgaben",
+    "profitMargin": "Gewinnmarge",
+    "expenseTransactionCount": "Anzahl der Ausgabenbuchungen",
+    "sumByExpenseType": "Summe der Ausgaben nach Ausgabenart",
+    "noExpensesPeriod": "In diesem Zeitraum wurden keine Ausgaben erfasst.",
+    "noExpensesPeriodTable": "In diesem Zeitraum wurden keine Ausgaben erfasst",
+    "totalSalesVsExpenses": "Gesamtumsatz vs. Gesamtausgaben",
+    "totalSales": "Gesamtumsatz",
+    "expenseTypeBreakdown": "Aufschlüsselung nach Ausgabenart",
+    "colExpenseType": "Ausgabenart",
+    "colTotalExpense": "Gesamtausgabe",
+    "colPercentOfTotal": "% vom Gesamt"
+  }
+}

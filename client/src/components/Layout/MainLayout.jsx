@@ -1,71 +1,85 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { useStore } from '../../context/StoreContext';
-import Icon from '../ui/Icons'; // adjust path to wherever your Icon.jsx lives
+import { useLanguage } from '../../context/LanguageContext';
+import Icon from '../ui/Icons'; 
 
-function menuItemsForRole(role, storeType) {
+function menuItemsForRole(role, storeType, t) {
   const isGm = role === 'owner' || role === 'general_manager';
   const isFarm = storeType === 'farm';
 
   if (isGm) {
     const items = [
-      { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { path: '/products', label: 'Products', icon: 'product' },
-      { path: '/sales', label: 'Sales', icon: 'sales' },
-      { path: '/inventory', label: 'Inventory', icon: 'inventory' },
-      { path: '/expenses', label: 'Expenses', icon: 'expenses' },
-      { path: '/returns', label: 'Returns', icon: 'returns' },
-      { path: '/customers', label: 'Customers', icon: 'customers' },
-      { path: '/activity-log', label: 'Activity Log', icon: 'activityLog' },
-      { path: '/equipment', label: 'Equipment', icon: 'equipment' },
-      { path: '/staff', label: 'Staff', icon: 'staff' },
-      { path: '/attendance', label: 'Attendance', icon: 'attendance' },
+      { path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+      { path: '/products', label: t('nav.products'), icon: 'product' },
+      { path: '/sales', label: t('nav.sales'), icon: 'sales' },
+      { path: '/inventory', label: t('nav.inventory'), icon: 'inventory' },
+      { path: '/inventory-movement', label: t('nav.inventoryMovement'), icon: 'movement' },
+      { path: '/expenses', label: t('nav.expenses'), icon: 'expenses' },
+      { path: '/returns', label: t('nav.returns'), icon: 'returns' },
+      { path: '/customers', label: t('nav.customers'), icon: 'customers' },
+      { path: '/activity-log', label: t('nav.activityLog'), icon: 'activityLog' },
+      { path: '/equipment', label: t('nav.equipment'), icon: 'equipment' },
+      { path: '/staff', label: t('nav.staff'), icon: 'staff' },
     ];
 
     if (!isFarm) {
-      items.splice(9, 0, { path: '/driver-tracking', label: 'Driver Tracking', icon: 'truck' });
+      items.splice(9, 0, { path: '/driver-tracking', label: t('nav.driverTracking'), icon: 'truck' });
+      items.splice(9, 0, { path: '/production', label: t('nav.production'), icon: 'inventory' });
+    } else {
+      items.splice(9, 0, { path: '/vaccination', label: t('nav.vaccination'), icon: 'vaccination' });
     }
 
     return items
   }
 
   if (role === 'manager' || role === 'supervisor') {
-    return [
-      { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { path: '/sales', label: 'Sales', icon: 'sales' },
-      { path: '/returns', label: 'Returns', icon: 'returns' },
-      { path: '/expenses', label: 'Expenses', icon: 'expenses' },
-      { path: '/inventory', label: 'Inventory', icon: 'inventory' },
-      { path: '/activity-log', label: 'My Activity Log', icon: 'activityLog' },
-      { path: '/attendance', label: 'Attendance', icon: 'attendance' },
+    const items = [
+      { path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+      { path: '/sales', label: t('nav.sales'), icon: 'sales' },
+      { path: '/returns', label: t('nav.returns'), icon: 'returns' },
+      { path: '/expenses', label: t('nav.expenses'), icon: 'expenses' },
+      { path: '/inventory', label: t('nav.inventory'), icon: 'inventory' },
+      { path: '/activity-log', label: t('nav.myActivityLog'), icon: 'activityLog' },
     ];
+    if (!isFarm) {
+      items.splice(4, 0, { path: '/production', label: t('nav.production'), icon: 'inventory' });
+    } else {
+      items.splice(4, 0, { path: '/vaccination', label: t('nav.vaccination'), icon: 'vaccination' });
+    }
+    return items;
   }
 
   if (role === 'accountant') {
-    return [
-      { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { path: '/sales', label: 'Sales', icon: 'sales' },
-      { path: '/inventory', label: 'Inventory', icon: 'inventory' },
-      { path: '/expenses', label: 'Expenses', icon: 'expenses' },
-      { path: '/attendance', label: 'Attendance', icon: 'attendance' },
+    const items = [
+      { path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+      { path: '/sales', label: t('nav.sales'), icon: 'sales' },
+      { path: '/inventory', label: t('nav.inventory'), icon: 'inventory' },
+      { path: '/expenses', label: t('nav.expenses'), icon: 'expenses' },
     ];
+    if (!isFarm) {
+      items.splice(3, 0, { path: '/production', label: t('nav.production'), icon: 'inventory' });
+    } else {
+      items.splice(3, 0, { path: '/vaccination', label: t('nav.vaccination'), icon: 'vaccination' });
+    }
+    return items;
   }
 
   if (role === 'driver') {
     return [
-      { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { path: '/customers', label: 'My Customers', icon: 'customers' },
-      { path: '/driver-tracking', label: 'My Location', icon: 'mapPin' },
-      { path: '/returns', label: 'Returns', icon: 'returns' },
-      { path: '/attendance', label: 'Attendance', icon: 'attendance' },
+      { path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+      { path: '/customers', label: t('nav.myCustomers'), icon: 'customers' },
+      { path: '/driver-tracking', label: t('nav.myLocation'), icon: 'mapPin' },
+      { path: '/returns', label: t('nav.returns'), icon: 'returns' },
     ];
   }
 
-  return [{ path: '/dashboard', label: 'Dashboard', icon: 'dashboard' }];
+  return [{ path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' }];
 }
 
-function StoreSwitcher() {
+function StoreSwitcher({ t }) {
   const { stores, activeStoreId, canSwitch, switchStore } = useStore();
   if (!canSwitch || stores.length <= 1) return null;
 
@@ -74,7 +88,7 @@ function StoreSwitcher() {
       value={activeStoreId || ''}
       onChange={(e) => switchStore(e.target.value)}
       className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium"
-      title="Switch store"
+      title={t('switchStore')}
     >
       {stores.map((s) => (
         <option key={s._id} value={s._id}>
@@ -85,7 +99,23 @@ function StoreSwitcher() {
   );
 }
 
+function LanguageSwitcher({ t }) {
+  const { language, setLanguage } = useLanguage();
+  return (
+    <select
+      value={language}
+      onChange={(e) => setLanguage(e.target.value)}
+      className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 font-medium"
+      title={t('language')}
+    >
+      <option value="en">English</option>
+      <option value="de">Deutsch</option>
+    </select>
+  );
+}
+
 export default function MainLayout({ children, user }) {
+  const { t } = useTranslation('layout');
   const location = useLocation();
   const navigate = useNavigate();
   const { activeStore } = useStore();
@@ -105,7 +135,8 @@ export default function MainLayout({ children, user }) {
   };
 
   const isActive = (path) => location.pathname === path;
-  const menuItems = menuItemsForRole(user?.role, activeStore?.type);
+  const menuItems = menuItemsForRole(user?.role, activeStore?.type, t);
+  const currentPageTitle = menuItems.find((item) => item.path === location.pathname)?.label || t('nav.dashboard');
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -119,8 +150,14 @@ export default function MainLayout({ children, user }) {
             </div>
             {sidebarOpen && (
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Stacey</h1>
-                <p className="text-xs text-gray-500">POS System</p>
+                <h1 className="text-lg font-bold text-gray-900">{activeStore?.name || t('brand')}</h1>
+                <p className="text-xs text-gray-500">
+                  {activeStore?.type === 'farm'
+                    ? t('storeTypeFarm')
+                    : activeStore?.type === 'fountain'
+                    ? t('storeTypeFountain')
+                    : t('brand')}
+                </p>
               </div>
             )}
           </div>
@@ -158,13 +195,14 @@ export default function MainLayout({ children, user }) {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden text-gray-600 hover:text-gray-900">
               <Icon name="menu" className="w-6 h-6" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{currentPageTitle}</h1>
           </div>
 
           <div className="flex items-center gap-4">
-            <StoreSwitcher />
+            <StoreSwitcher t={t} />
+            <LanguageSwitcher t={t} />
 
-            <button className="relative text-gray-600 hover:text-gray-900 transition-colors" title="Notifications">
+            <button className="relative text-gray-600 hover:text-gray-900 transition-colors" title={t('notifications')}>
               <Icon name="bell" className="w-6 h-6" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
@@ -189,20 +227,20 @@ export default function MainLayout({ children, user }) {
                     onClick={() => setUserMenuOpen(false)}
                     className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    <Icon name="settings" className="w-4 h-4" /> Profile Settings
+                    <Icon name="settings" className="w-4 h-4" /> {t('profileSettings')}
                   </button>
                   <button
                     onClick={() => setUserMenuOpen(false)}
                     className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    <Icon name="lock" className="w-4 h-4" /> Change Password
+                    <Icon name="lock" className="w-4 h-4" /> {t('changePassword')}
                   </button>
                   <hr className="my-1" />
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 font-medium"
                   >
-                    <Icon name="logOut" className="w-4 h-4" /> Sign out
+                    <Icon name="logOut" className="w-4 h-4" /> {t('signOut')}
                   </button>
                 </div>
               )}

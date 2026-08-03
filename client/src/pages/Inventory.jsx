@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 export default function Inventory({ user }) {
+  const { t } = useTranslation('inventory');
   const canEdit = ['owner', 'general_manager', 'accountant'].includes(user?.role); // manager = view only
 
   const [products, setProducts] = useState([]);
@@ -25,7 +27,7 @@ export default function Inventory({ user }) {
       const response = await api.get('/stock/products');
       setProducts(response.data.data);
     } catch (err) {
-      setError('Failed to load products');
+      setError(t('errorLoadProducts'));
     }
   };
 
@@ -56,12 +58,12 @@ export default function Inventory({ user }) {
     setSuccess('');
     try {
       if (!form.productId || !form.quantity) {
-        setError('Select a product and enter a quantity');
+        setError(t('errorSelectProductQuantity'));
         setLoading(false);
         return;
       }
       await api.post(`/stock/${direction}`, { productId: form.productId, quantity: Number(form.quantity), notes: form.notes });
-      setSuccess(`Stock ${direction === 'in' ? 'added' : 'removed'} successfully`);
+      setSuccess(direction === 'in' ? t('stockAddedSuccess') : t('stockRemovedSuccess'));
       setForm({ productId: '', quantity: '', notes: '' });
       fetchProducts();
       fetchAnalytics();
@@ -79,7 +81,7 @@ export default function Inventory({ user }) {
     setSuccess('');
     try {
       if (!manualForm.productId || !manualForm.quantity || !manualForm.manualEntryDate) {
-        setError('Select a product, quantity and date');
+        setError(t('errorSelectProductQuantityDate'));
         setLoading(false);
         return;
       }
@@ -89,7 +91,7 @@ export default function Inventory({ user }) {
         manualEntryDate: manualForm.manualEntryDate,
         notes: manualForm.notes,
       });
-      setSuccess('Historical sale recorded');
+      setSuccess(t('historicalSaleRecorded'));
       setManualForm({ productId: '', quantity: '', manualEntryDate: '', notes: '' });
       fetchManualEntries();
     } catch (err) {
@@ -101,77 +103,122 @@ export default function Inventory({ user }) {
 
   const formatDate = (date) => new Date(date).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' });
 
+  const statusLabel = (status) =>
+    status === 'healthy' ? t('statusHealthy') : status === 'low_stock' ? t('statusLowStock') : t('statusOutOfStock');
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
-        <p className="text-gray-500 mt-1">Manage stock levels and products{!canEdit && ' (view only)'}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+        <p className="text-gray-500 mt-1">{t('subtitle')}{!canEdit && ` ${t('viewOnlySuffix')}`}</p>
       </div>
 
       {error && <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">{error}</div>}
       {success && <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">{success}</div>}
 
       <div className="flex gap-2 border-b border-gray-200">
-        {['overview', 'movements', ...(canEdit ? ['manual-entry'] : [])].map((t) => (
+        {['overview', 'movements', ...(canEdit ? ['manual-entry'] : [])].map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              tab === t ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              tab === tabKey ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            {t === 'overview' ? 'Overview & Analytics' : t === 'movements' ? 'Stock In / Out' : 'Manual Past-Sale Entry'}
+            {tabKey === 'overview' ? t('tabOverview') : tabKey === 'movements' ? t('tabMovements') : t('tabManualEntry')}
           </button>
         ))}
       </div>
 
       {tab === 'overview' && (
         <div className="space-y-6">
-          {analytics && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <p className="text-sm text-gray-500">Total Units in Stock</p>
-                <p className="text-2xl font-bold text-blue-600">{analytics.totalUnits}</p>
+          {analytics?.overview && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">{t('statTotalStockIn')}</p>
+                <p className="text-xl font-bold text-gray-900">{Math.round(analytics.overview.stockInUnits).toLocaleString()}</p>
               </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <p className="text-sm text-gray-500">Healthy Products</p>
-                <p className="text-2xl font-bold text-green-600">{analytics.byStatus.healthy}</p>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">{t('statTotalStockOut')}</p>
+                <p className="text-xl font-bold text-gray-900">{Math.round(analytics.overview.stockOutUnits).toLocaleString()}</p>
               </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <p className="text-sm text-gray-500">Low / Out of Stock</p>
-                <p className="text-2xl font-bold text-red-600">{analytics.byStatus.low_stock + analytics.byStatus.out_of_stock}</p>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">{t('statStockOutRate')}</p>
+                <p className="text-xl font-bold text-gray-900">{analytics.overview.stockOutRatePct.toFixed(2)}%</p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">{t('statLowStockCount')}</p>
+                <p className="text-xl font-bold text-red-600">{analytics.overview.lowStockCount}</p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">{t('statInventoryTurnover')}</p>
+                <p className="text-xl font-bold text-gray-900">{analytics.overview.turnover.toFixed(2)}</p>
               </div>
             </div>
           )}
 
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Product</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Stock</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Threshold</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((p) => {
-                  const status = p.currentStock <= 0 ? 'out_of_stock' : p.currentStock <= p.minThreshold ? 'low_stock' : 'healthy';
-                  return (
-                    <tr key={p._id} className="border-b border-gray-100">
-                      <td className="px-6 py-3 font-medium text-gray-900">{p.name}</td>
-                      <td className="px-6 py-3 text-gray-600">{p.currentStock} {p.unitName}(s)</td>
-                      <td className="px-6 py-3 text-gray-600">{p.minThreshold}</td>
-                      <td className="px-6 py-3">
-                        <span className={status === 'healthy' ? 'badge-green' : status === 'low_stock' ? 'badge-yellow' : 'badge-red'}>
-                          {status.replace('_', ' ')}
-                        </span>
-                      </td>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-sm font-semibold text-gray-900">{t('productsHeading')}</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900">{t('colProductName')}</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900">{t('colStock')}</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900">{t('colStatus')}</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {(analytics?.overview?.products || []).map((p) => (
+                      <tr key={p.productId} className="border-b border-gray-100">
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900">{p.name}</td>
+                        <td className="px-4 py-2 text-sm text-gray-600">{Math.round(p.stock)}</td>
+                        <td className="px-4 py-2">
+                          <span className={p.status === 'healthy' ? 'badge-green' : p.status === 'low_stock' ? 'badge-yellow' : 'badge-red'}>
+                            {statusLabel(p.status)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-sm font-semibold text-gray-900">{t('allInventoryItemsHeading')}</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900">{t('colProductName')}</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900">{t('colStock')}</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900">{t('colUnitType')}</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900">{t('colStatus')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(analytics?.overview?.allItems || []).map((item) => (
+                      <tr key={item.productId} className="border-b border-gray-100">
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900">{item.name}</td>
+                        <td className="px-4 py-2 text-sm text-gray-600">{Math.round(item.stock)}</td>
+                        <td className="px-4 py-2 text-sm text-gray-600 uppercase">{item.unitType}</td>
+                        <td className="px-4 py-2">
+                          <span className={item.status === 'healthy' ? 'badge-green' : item.status === 'low_stock' ? 'badge-yellow' : 'badge-red'}>
+                            {statusLabel(item.status)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -179,18 +226,18 @@ export default function Inventory({ user }) {
       {tab === 'movements' && (
         <div className="bg-white rounded-lg border border-gray-200 p-6 max-w-lg">
           {!canEdit ? (
-            <p className="text-gray-500 text-sm">Your role has view-only access to inventory. Contact the General Manager or Accountant for stock changes.</p>
+            <p className="text-gray-500 text-sm">{t('viewOnlyNotice')}</p>
           ) : (
             <div className="space-y-4">
               <select value={form.productId} onChange={(e) => setForm({ ...form, productId: e.target.value })} className="input-field">
-                <option value="">Select Product</option>
+                <option value="">{t('selectProductOption')}</option>
                 {products.map((p) => (
                   <option key={p._id} value={p._id}>{p.name}</option>
                 ))}
               </select>
               <input
                 type="number"
-                placeholder="Quantity"
+                placeholder={t('quantityPlaceholder')}
                 value={form.quantity}
                 onChange={(e) => setForm({ ...form, quantity: e.target.value })}
                 className="input-field"
@@ -198,14 +245,14 @@ export default function Inventory({ user }) {
               />
               <input
                 type="text"
-                placeholder="Notes (optional)"
+                placeholder={t('notesOptionalPlaceholder')}
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 className="input-field"
               />
               <div className="flex gap-3">
-                <button onClick={() => submitMovement('in')} disabled={loading} className="flex-1 btn-primary">Stock In</button>
-                <button onClick={() => submitMovement('out')} disabled={loading} className="flex-1 btn-secondary">Stock Out</button>
+                <button onClick={() => submitMovement('in')} disabled={loading} className="flex-1 btn-primary">{t('stockInButton')}</button>
+                <button onClick={() => submitMovement('out')} disabled={loading} className="flex-1 btn-secondary">{t('stockOutButton')}</button>
               </div>
             </div>
           )}
@@ -215,16 +262,16 @@ export default function Inventory({ user }) {
       {tab === 'manual-entry' && canEdit && (
         <div className="space-y-6">
           <form onSubmit={submitManualPastSale} className="bg-white rounded-lg border border-gray-200 p-6 max-w-lg space-y-4">
-            <p className="text-sm text-gray-500">Back-fill a historical sale that happened before this system was in use.</p>
+            <p className="text-sm text-gray-500">{t('manualEntryDescription')}</p>
             <select value={manualForm.productId} onChange={(e) => setManualForm({ ...manualForm, productId: e.target.value })} className="input-field">
-              <option value="">Select Product</option>
+              <option value="">{t('selectProductOption')}</option>
               {products.map((p) => (
                 <option key={p._id} value={p._id}>{p.name}</option>
               ))}
             </select>
             <input
               type="number"
-              placeholder="Quantity sold"
+              placeholder={t('quantitySoldPlaceholder')}
               value={manualForm.quantity}
               onChange={(e) => setManualForm({ ...manualForm, quantity: e.target.value })}
               className="input-field"
@@ -238,34 +285,34 @@ export default function Inventory({ user }) {
             />
             <input
               type="text"
-              placeholder="Notes (optional)"
+              placeholder={t('notesOptionalPlaceholder')}
               value={manualForm.notes}
               onChange={(e) => setManualForm({ ...manualForm, notes: e.target.value })}
               className="input-field"
             />
-            <button type="submit" disabled={loading} className="btn-primary w-full">Save Historical Entry</button>
+            <button type="submit" disabled={loading} className="btn-primary w-full">{t('saveHistoricalEntryButton')}</button>
           </form>
 
           {/* NEW: table listing every manual past-sale entry recorded so far */}
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Recorded Historical Entries</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('recordedHistoricalEntriesHeading')}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Sale Date</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Product</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Quantity</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Notes</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Logged On</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colSaleDate')}</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colProduct')}</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colQuantity')}</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colNotes')}</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colLoggedOn')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {manualEntries.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">No historical entries recorded yet</td>
+                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('noHistoricalEntries')}</td>
                     </tr>
                   ) : (
                     manualEntries.map((entry) => (
@@ -273,8 +320,8 @@ export default function Inventory({ user }) {
                         <td className="px-6 py-3 text-sm text-gray-900 font-medium">
                           {formatDate(entry.manualEntryDate || entry.timestamp)}
                         </td>
-                        <td className="px-6 py-3 text-sm text-gray-600">{entry.productId?.name || 'Unknown product'}</td>
-                        <td className="px-6 py-3 text-sm text-gray-600">{entry.quantity}</td>
+                        <td className="px-6 py-3 text-sm text-gray-600">{entry.productId?.name || t('unknownProduct')}</td>
+                        <td className="px-6 py-3 text-sm text-gray-600">{Math.round(entry.quantity)}</td>
                         <td className="px-6 py-3 text-sm text-gray-600">{entry.notes || '-'}</td>
                         <td className="px-6 py-3 text-sm text-gray-400">{formatDate(entry.createdAt || entry.timestamp)}</td>
                       </tr>

@@ -1,0 +1,84 @@
+{
+  "title": "Dashboard",
+  "loadError": "Dashboard konnte nicht geladen werden",
+  "roleOverviewSuffix": "Übersicht",
+  "left": "übrig",
+  "lowStockAlert": "Warnung: niedriger Bestand",
+  "periods": {
+    "twoDays": "2 Tage",
+    "sevenDays": "7 Tage",
+    "oneWeek": "1 Woche",
+    "oneMonth": "1 Monat",
+    "oneYear": "1 Jahr"
+  },
+  "driver": {
+    "myCustomers": "Meine Kunden",
+    "productsSoldWeek": "Verkaufte Produkte (Woche)",
+    "productsSoldMonth": "Verkaufte Produkte (Monat)",
+    "productsSoldYear": "Verkaufte Produkte (Jahr)",
+    "distanceCoveredWeek": "Zurückgelegte Strecke (Woche)",
+    "distanceCoveredMonth": "Zurückgelegte Strecke (Monat)",
+    "distanceCoveredYear": "Zurückgelegte Strecke (Jahr)",
+    "returns": "Retouren"
+  },
+  "stats": {
+    "todaysSales": "Heutiger Umsatz",
+    "totalStock": "Gesamtbestand",
+    "profitPeriod": "Gewinn (Zeitraum)",
+    "lossPeriod": "Verlust (Zeitraum)",
+    "totalExpense": "Gesamtausgaben",
+    "damagedEggs": "Beschädigte/Zerbrochene Eier",
+    "returns": "Retouren"
+  },
+  "charts": {
+    "salesStockTrend": "Umsatz-/Bestandsverlauf",
+    "salesTrend": "Umsatzverlauf",
+    "bestSellingProducts": "Meistverkaufte Produkte",
+    "stockHealthByProduct": "Bestandsstatus nach Produkt",
+    "expensesByCategory": "Ausgaben nach Kategorie",
+    "noExpenses": "In diesem Zeitraum wurden keine Ausgaben erfasst."
+  },
+  "stockHealth": {
+    "inStock": "auf Lager",
+    "soldThisPeriod": "in diesem Zeitraum verkauft"
+  },
+  "status": {
+    "healthy": "gesund",
+    "low_stock": "niedriger Bestand",
+    "out_of_stock": "nicht vorrätig"
+  },
+  "inventorySummary": {
+    "title": "Bestandsübersicht",
+    "stockIn": "Wareneingang",
+    "stockOut": "Warenausgang",
+    "stockOutRate": "Abverkaufsrate",
+    "lowStockItems": "Artikel mit niedrigem Bestand",
+    "inventoryTurnover": "Lagerumschlag"
+  },
+  "production": {
+    "title": "Produktion (Stacey Fountain)",
+    "pcs": "Stk.",
+    "lowStock": "NIEDRIGER BESTAND",
+    "bottledWaterPeriod": "Flaschenwasser (Zeitraum)",
+    "packs": "Packungen",
+    "bottles": "Flaschen",
+    "preformsLeaked": "Preforms undicht",
+    "sachetWaterPeriod": "Beutelwasser (Zeitraum)",
+    "bags": "Säcke",
+    "sachets": "Beutel",
+    "sachetsLeaked": "Beutel undicht"
+  },
+  "profitBreakdown": {
+    "toggle": "Wie wird Gewinn/Verlust berechnet?",
+    "revenue": "Umsatz",
+    "returnsValue": "Retourenwert",
+    "costOfGoodsSold": "Wareneinsatz",
+    "grossProfit": "Bruttogewinn",
+    "approvedExpenses": "Genehmigte Ausgaben",
+    "netProfit": "Nettogewinn",
+    "netLoss": "Nettoverlust",
+    "damagedStockNote": "Beschädigte Ware wird zum Einkaufspreis bewertet, da sie ausgebucht wurde, bevor sie verkauft werden konnte.",
+    "returnsValueNote": "Der Retourenwert basiert auf dem Produktpreis zum Zeitpunkt der Retoure, sodass spätere Preisänderungen vergangene Zeiträume nicht beeinflussen.",
+    "cogsNote": "Der Wareneinsatz berücksichtigt nur Produkte mit hinterlegtem Einkaufspreis."
+  }
+}

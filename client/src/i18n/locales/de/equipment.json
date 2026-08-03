@@ -1,0 +1,25 @@
+{
+  "title": "Ausrüstung",
+  "subtitle": "Fabrikausrüstung und Wartungspläne verfolgen",
+  "nameRequired": "Der Name der Ausrüstung ist erforderlich",
+  "equipmentAdded": "Ausrüstung hinzugefügt",
+  "namePlaceholder": "Name der Ausrüstung",
+  "typePlaceholder": "Typ (z. B. Abfüllmaschine)",
+  "serialNumberPlaceholder": "Seriennummer",
+  "serviceIntervalPlaceholder": "Wartungsintervall (Tage)",
+  "notesPlaceholder": "Notizen",
+  "addEquipment": "Ausrüstung hinzufügen",
+  "colEquipment": "Ausrüstung",
+  "colType": "Typ",
+  "colLastServiced": "Zuletzt gewartet",
+  "colNextDue": "Nächste Fälligkeit",
+  "colStatus": "Status",
+  "noneRecorded": "Noch keine Ausrüstung erfasst",
+  "markServiced": "Als gewartet markieren",
+  "status": {
+    "operational": "Einsatzbereit",
+    "due_for_service": "Wartung fällig",
+    "under_maintenance": "In Wartung",
+    "out_of_service": "Außer Betrieb"
+  }
+}

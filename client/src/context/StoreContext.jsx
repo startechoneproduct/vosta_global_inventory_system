@@ -16,10 +16,17 @@ export function StoreProvider({ user, children }) {
       setStores(response.data.data || []);
       setCanSwitch(!!response.data.canSwitch);
 
-      // Restore previously selected store (owner only) or default to user's store
+      // Restore previously selected store (owner only), else default to the
+      // user's own assigned store, else fall back to whatever store comes
+      // first (previously fell straight to data[0] here, which - since
+      // stores are returned alphabetically - silently defaulted an owner
+      // with no saved preference to "Stacey Farm" over their actual home
+      // store just because "Farm" sorts before "Fountain").
       const saved = localStorage.getItem('activeStoreId');
       if (response.data.canSwitch && saved && response.data.data.some((s) => s._id === saved)) {
         setActiveStoreId(saved);
+      } else if (response.data.canSwitch && user?.storeId && response.data.data.some((s) => s._id === user.storeId)) {
+        setActiveStoreId(user.storeId);
       } else if (response.data.data.length > 0) {
         setActiveStoreId(response.data.data[0]._id);
       }

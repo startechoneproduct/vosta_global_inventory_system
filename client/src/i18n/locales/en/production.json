@@ -1,0 +1,50 @@
+{
+  "fountainOnly": "Production tracking is only available for Stacey Fountain.",
+  "title": "Production",
+  "subtitle": "Raw materials and production batches for Stacey Fountain",
+  "enterPositiveRestockQty": "Enter a positive restock quantity",
+  "restockRecorded": "Restock recorded",
+  "selectBottledFields": "Select a product, a preform variant, and enter bottles produced",
+  "bottledBatchRecorded": "Bottled water production batch recorded",
+  "selectSachetFields": "Select a product and enter sachets produced",
+  "sachetBatchRecorded": "Sachet water production batch recorded",
+  "rawMaterials": {
+    "heading": "Raw Materials",
+    "colMaterial": "Material",
+    "colStock": "Stock",
+    "colPieces": "Pieces",
+    "colRestock": "Restock",
+    "lowStock": "LOW STOCK",
+    "qtyPlaceholder": "Qty",
+    "restockButton": "Restock"
+  },
+  "bottledForm": {
+    "heading": "Record Bottled Water Batch",
+    "selectBottleSize": "Select Bottle Size",
+    "selectPreformVariant": "Select Preform Variant Used",
+    "bottlesProducedPlaceholder": "Bottles Produced",
+    "preformsLeakedPlaceholder": "Preforms Leaked (burst during blowing)",
+    "notesPlaceholder": "Notes (optional)",
+    "submitButton": "Record Bottled Batch"
+  },
+  "sachetForm": {
+    "heading": "Record Sachet Water Batch",
+    "selectSachetProduct": "Select Sachet Product",
+    "sachetsProducedPlaceholder": "Sachets Produced",
+    "sachetsLeakedPlaceholder": "Sachets Leaked (burst/torn during sealing)",
+    "notesPlaceholder": "Notes (optional)",
+    "submitButton": "Record Sachet Batch"
+  },
+  "batches": {
+    "heading": "Recent Production Batches",
+    "colDate": "Date",
+    "colLine": "Line",
+    "colProduct": "Product",
+    "colQtyProduced": "Qty Produced",
+    "colLeakage": "Leakage",
+    "colRecordedBy": "Recorded By",
+    "noneRecorded": "No production recorded yet",
+    "bottlesAndPacks": "{{bottles}} bottles ({{packs}} packs)",
+    "sachetsAndBags": "{{sachets}} sachets ({{bags}} bags)"
+  }
+}

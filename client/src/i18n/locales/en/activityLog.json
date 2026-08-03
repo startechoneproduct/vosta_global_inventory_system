@@ -1,0 +1,18 @@
+{
+  "title": "Activity Log",
+  "subtitleGm": "Every product sold, by whoever sold it",
+  "subtitleStaff": "Your own product sales activity",
+  "colDate": "Date",
+  "colProduct": "Product",
+  "colQuantity": "Quantity",
+  "colAction": "Action",
+  "colSoldBy": "Sold By",
+  "loading": "Loading...",
+  "noActivity": "No activity recorded yet",
+  "actions": {
+    "sold": "Sold",
+    "returned": "Returned",
+    "stockIn": "Stock In",
+    "stockOut": "Stock Out"
+  }
+}

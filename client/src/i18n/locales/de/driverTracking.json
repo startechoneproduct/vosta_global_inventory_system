@@ -1,0 +1,30 @@
+{
+  "title": "Fahrerverfolgung",
+  "subtitleGm": "Echtzeit-Standort aller Fahrer",
+  "subtitleDriver": "Standort und Lieferziele melden",
+  "selfView": {
+    "currentLocationHeading": "Mein aktueller Standort",
+    "locating": "Standort wird ermittelt...",
+    "sendLocationUpdate": "📍 Standort aktualisieren",
+    "stopAutoTracking": "Automatische Verfolgung stoppen",
+    "startAutoTracking": "Automatische Verfolgung starten",
+    "currentLocationLabel": "Aktueller Standort: ",
+    "targetsHeading": "Geplante Lieferorte für heute",
+    "targetsSubtitle": "Adresse eingeben - Koordinaten müssen nicht nachgeschlagen werden.",
+    "nicknamePlaceholder": "Spitzname (optional)",
+    "addressPlaceholder": "Adresse (z. B. Wuse Market, Abuja)",
+    "addLocation": "+ Standort hinzufügen",
+    "saveTargets": "Ziele speichern",
+    "geolocationNotSupported": "Standortbestimmung wird von diesem Browser nicht unterstützt",
+    "locationUpdatedAt": "Standort aktualisiert um {{time}}",
+    "addAtLeastOneAddress": "Mindestens eine Lieferadresse hinzufügen",
+    "targetsSaved": "Lieferziele gespeichert"
+  },
+  "leadership": {
+    "colDriver": "Fahrer",
+    "colCurrentLocation": "Aktueller Standort",
+    "colTargetsToday": "Heutige Ziele",
+    "colLastUpdate": "Letzte Aktualisierung",
+    "noData": "Noch keine Standortdaten für Fahrer vorhanden"
+  }
+}

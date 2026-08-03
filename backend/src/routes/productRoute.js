@@ -5,12 +5,14 @@ const { verifyToken, resolveStoreScope, authorizeGm, authorize } = require('../m
 const router = express.Router();
 
 const BIRD_CATEGORIES = ['layer', 'broiler'];
+// Farm sells eggs (crate/unit), live birds (bird), and byproducts like
+// chicken droppings (bag). Feed inputs (grower/layer feed bags) are
+// recorded as Expenses, not Products - see expensesRoute.js's FARM_CATEGORIES.
+const FARM_UNIT_NAMES = ['crate', 'unit', 'bag', 'bird'];
 
-// Farm sells by crate (eggs) or bird (layers/broilers) only - the wider
-// unit list (pack/bag/bottle/unit) belongs to Fountain's product catalog.
 function validateUnitAndCategory(storeType, unitName, category) {
-  if (storeType === 'farm' && !['crate', 'bird'].includes(unitName)) {
-    return `Farm products must use unit "crate" or "bird", got "${unitName}"`;
+  if (storeType === 'farm' && !FARM_UNIT_NAMES.includes(unitName)) {
+    return `Farm products must use one of: ${FARM_UNIT_NAMES.join(', ')} - got "${unitName}"`;
   }
   if (unitName === 'bird' && !BIRD_CATEGORIES.includes(category)) {
     return `Bird products require a category of ${BIRD_CATEGORIES.join(' or ')}`;

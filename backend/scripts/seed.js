@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { User, Store, Product, Equipment } = require('../src/models');
+const { User, Store, Product, Equipment, RawMaterial } = require('../src/models');
 
 const STORES = [
   {
@@ -49,6 +49,60 @@ const PRODUCTS_FOUNTAIN = [
   },
 ];
 
+const RAW_MATERIALS_FOUNTAIN = [
+  {
+    name: 'Preform 21kg Bag',
+    materialKey: 'preform_21kg',
+    productLine: 'bottled',
+    purchaseUnitName: 'bag',
+    piecesPerPurchaseUnit: 550,
+    currentStockPurchaseUnits: 40,
+    minThresholdPurchaseUnits: 8,
+  },
+  {
+    name: 'Preform 19kg Bag',
+    materialKey: 'preform_19kg',
+    productLine: 'bottled',
+    purchaseUnitName: 'bag',
+    piecesPerPurchaseUnit: 1040,
+    currentStockPurchaseUnits: 25,
+    minThresholdPurchaseUnits: 5,
+  },
+  {
+    name: 'Caps',
+    materialKey: 'caps',
+    productLine: 'bottled',
+    purchaseUnitName: 'bag',
+    piecesPerPurchaseUnit: 4000,
+    currentStockPurchaseUnits: 15,
+    minThresholdPurchaseUnits: 3,
+    notes: 'Piece count is approximate (~4000/bag) - adjust once confirmed with supplier.',
+  },
+  {
+    name: 'Labels',
+    materialKey: 'labels',
+    productLine: 'bottled',
+    purchaseUnitName: 'bundle',
+    piecesPerPurchaseUnit: 500,
+    currentStockPurchaseUnits: 60,
+    minThresholdPurchaseUnits: 10,
+  },
+  {
+    name: 'Nylon Roll',
+    materialKey: 'nylon_roll',
+    productLine: 'sachet',
+    purchaseUnitName: 'roll (15kg)',
+    piecesPerPurchaseUnit: 8000,
+    currentStockPurchaseUnits: 10,
+    minThresholdPurchaseUnits: 2,
+    notes: 'Default reference figure (~8000 sachets per 15kg roll, industry standard) - update once actual supplier yield is known.',
+  },
+];
+
+// Feed bags (layer/grower) are consumed inputs, not sellable output, and
+// are recorded as Expenses instead (see expensesRoute.js's FARM_CATEGORIES).
+// Farm products are limited to what the farm actually produces/sells: eggs
+// (by crate or by unit), chicken droppings (byproduct), and live birds.
 const PRODUCTS_FARM = [
   {
     sku: 'SKU-SFM-001',
@@ -60,22 +114,13 @@ const PRODUCTS_FARM = [
     pricePerUnit: 500000,
   },
   {
-    sku: 'SKU-SFM-002',
-    name: 'Layer Feed Bag',
-    description: 'Bulk layer feed, 50kg per bag',
-    unitName: 'bag',
-    currentStock: 45,
-    minThreshold: 5,
-    pricePerUnit: 800000,
-  },
-  {
-    sku: 'SKU-SFM-003',
-    name: 'Grower Feed Bag',
-    description: 'Bulk grower feed, 50kg per bag',
-    unitName: 'bag',
-    currentStock: 35,
-    minThreshold: 5,
-    pricePerUnit: 750000,
+    sku: 'SKU-SFM-005',
+    name: 'Eggs (Per Unit)',
+    description: 'Fresh farm eggs, sold individually',
+    unitName: 'unit',
+    currentStock: 200,
+    minThreshold: 30,
+    pricePerUnit: 20000,
   },
   {
     sku: 'SKU-SFM-004',
@@ -121,6 +166,7 @@ async function seed() {
     await Store.deleteMany({});
     await Product.deleteMany({});
     await Equipment.deleteMany({});
+    await RawMaterial.deleteMany({});
 
     const fountainStore = await Store.create(STORES[0]);
     const farmStore = await Store.create(STORES[1]);
@@ -130,7 +176,7 @@ async function seed() {
     // Owner has global access (empty accessibleStoreIds = unrestricted)
     const users = await User.create([
       {
-        email: 'admin@vostaglobal.org',
+        email:'owner@stacey.com',
         password_hash: 'SecuredLink',
         fullName: 'Owner User',
         phone: '+234 801 123 4567',
@@ -178,13 +224,18 @@ async function seed() {
       FOUNTAIN_EQUIPMENT.map((e) => ({ ...e, storeId: fountainStore._id })),
     );
 
+    await RawMaterial.create(
+      RAW_MATERIALS_FOUNTAIN.map((m) => ({ ...m, storeId: fountainStore._id })),
+    );
+    console.log(`   ✅ Seeded ${RAW_MATERIALS_FOUNTAIN.length} raw materials for Stacey Fountain`);
+
     console.log(`
 ╔════════════════════════════════════════╗
 ║ ✅ DATABASE SEED SUCCESSFUL           ║
 ╚════════════════════════════════════════╝
 
 🔐 Demo Login Credentials:
-   Owner (switches stores):  admin@vostaglobal.org / SecuredLink
+   Owner (switches stores):  owner@stacey.com / SecuredLink
    Fountain Manager:         manager@fountain.com / Password@123
    Fountain Accountant:      accountant@fountain.com / Password@123
    Fountain Driver:          driver@fountain.com / Password@123
@@ -198,3 +249,4 @@ async function seed() {
 }
 
 seed();
+

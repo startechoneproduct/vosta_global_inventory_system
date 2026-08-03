@@ -1,11 +1,3 @@
-// Uses OpenStreetMap's Nominatim service - free, no API key required.
-// Their usage policy requires a descriptive User-Agent and caps public
-// usage at roughly 1 request/second, which is fine for a small business
-// app pinging every 60s per driver. If you scale up significantly, swap
-// this for a paid provider (Google Geocoding API, Mapbox, LocationIQ) -
-// the two exported function signatures below are all you'd need to keep
-// the same when swapping providers.
-
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
 const USER_AGENT = 'StaceyPOS/1.0 (internal business app - driver tracking)';
 

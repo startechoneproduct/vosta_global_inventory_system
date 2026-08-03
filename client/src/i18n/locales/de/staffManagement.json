@@ -1,0 +1,43 @@
+{
+  "title": "Mitarbeiterverwaltung",
+  "subtitle": "Mitarbeiter hinzufügen, Rollen zuweisen und Anmeldedaten generieren",
+  "managingForStore": "Sie sehen und fügen Mitarbeiter hinzu für: {{store}}. Neue Mitarbeiter sehen nur das Dashboard dieser Filiale.",
+  "errors": {
+    "emailAndNameRequired": "E-Mail und vollständiger Name sind erforderlich"
+  },
+  "success": {
+    "staffAdded": "Mitarbeiter hinzugefügt. Anmeldedaten wurden per E-Mail versendet.",
+    "passwordReset": "Passwort zurückgesetzt. Neues temporäres Passwort: {{password}}"
+  },
+  "tempPasswordLabel": "Temporäres Passwort: {{password}}",
+  "form": {
+    "fullNamePlaceholder": "Vollständiger Name",
+    "emailPlaceholder": "E-Mail",
+    "phonePlaceholder": "Telefon",
+    "addStaffButton": "Mitarbeiter hinzufügen & Passwort generieren"
+  },
+  "table": {
+    "colName": "Name",
+    "colEmail": "E-Mail",
+    "colRole": "Rolle",
+    "colStatus": "Status",
+    "colActions": "Aktionen",
+    "noStaff": "Noch keine Mitarbeiter hinzugefügt"
+  },
+  "status": {
+    "active": "aktiv",
+    "inactive": "inaktiv"
+  },
+  "actions": {
+    "deactivate": "Deaktivieren",
+    "activate": "Aktivieren",
+    "resetPassword": "Passwort zurücksetzen"
+  },
+  "roles": {
+    "general_manager": "Generaldirektor",
+    "manager": "Manager",
+    "accountant": "Buchhalter",
+    "driver": "Fahrer",
+    "supervisor": "Aufsicht"
+  }
+}

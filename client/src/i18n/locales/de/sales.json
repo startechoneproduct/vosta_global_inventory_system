@@ -1,0 +1,68 @@
+{
+  "title": "Verkäufe",
+  "subtitle": "Verkaufstransaktionen erfassen",
+  "tabs": {
+    "record": "Verkauf erfassen",
+    "overview": "Verkaufsübersicht"
+  },
+  "newSale": "Neuer Verkauf",
+  "errors": {
+    "loadProducts": "Produkte konnten nicht geladen werden",
+    "loadAnalytics": "Verkaufsanalysen konnten nicht geladen werden",
+    "addItem": "Fügen Sie mindestens einen Artikel zum Verkauf hinzu",
+    "recordSale": "Verkauf konnte nicht erfasst werden"
+  },
+  "success": {
+    "saleRecorded": "Verkauf erfolgreich erfasst!"
+  },
+  "form": {
+    "selectProduct": "Produkt auswählen",
+    "stockLabel": "Bestand: {{count}}",
+    "qtyPlaceholder": "Menge",
+    "pricePlaceholder": "Preis",
+    "priceLockedTitle": "Nur der Generalmanager kann den Preis ändern (prüfungsgesperrt)",
+    "priceOverrideTitle": "Preis überschreiben",
+    "priceLockedNote": "🔒 Preisfelder sind gesperrt. Nur der Generalmanager kann Produktpreise überschreiben.",
+    "addItem": "+ Artikel hinzufügen",
+    "paymentMethod": "Zahlungsmethode",
+    "paymentOptions": {
+      "cash": "Bar",
+      "transfer": "Banküberweisung",
+      "card": "Karte"
+    },
+    "total": "Gesamt:",
+    "recording": "Wird erfasst...",
+    "recordSale": "Verkauf erfassen"
+  },
+  "recentSales": {
+    "heading": "Aktuelle Verkäufe",
+    "colDate": "Datum",
+    "colProducts": "Produkt(e)",
+    "colPayment": "Zahlung",
+    "colRecordedBy": "Erfasst von",
+    "colTotal": "Gesamt",
+    "empty": "Noch keine Verkäufe erfasst"
+  },
+  "overview": {
+    "periods": {
+      "2days": "2 Tage",
+      "7days": "7 Tage",
+      "1month": "1 Monat",
+      "1year": "1 Jahr"
+    },
+    "stats": {
+      "totalSales": "Gesamtumsatz",
+      "totalProfit": "Gesamtgewinn",
+      "totalCost": "Gesamtkosten",
+      "avgSaleValue": "Durchschnittlicher Verkaufswert"
+    },
+    "charts": {
+      "salesTrend": "Verkaufstrend nach Tag",
+      "topSelling": "Top 5 meistverkaufte Produkte",
+      "bottomSelling": "Top 5 wenigst verkaufte Produkte",
+      "transactionCount": "Transaktionsanzahl nach Produkt",
+      "revenueByCategory": "Gesamtumsatz nach Kategorie"
+    },
+    "noSalesInPeriod": "In diesem Zeitraum wurden keine Verkäufe erfasst."
+  }
+}

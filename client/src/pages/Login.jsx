@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Icon from '../components/ui/Icons';
 import api from '../services/api';
 
 export default function Login() {
+  const { t } = useTranslation('login');
   const navigate = useNavigate();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +26,7 @@ export default function Login() {
       localStorage.setItem('accessToken', response.data.data.accessToken);
       navigate('/dashboard');
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+      const errorMessage = err.response?.data?.message || err.message || t('loginFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -35,22 +37,22 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-4 sm:p-0">
       <div className="hidden lg:flex lg:absolute lg:left-0 lg:top-0 lg:h-full lg:w-1/2 lg:bg-gradient-to-b lg:from-blue-600 lg:to-blue-800 lg:flex-col lg:items-center lg:justify-center">
         <div className="max-w-md">
-          <h1 className="text-5xl font-bold text-white mb-6">Stacey POS</h1>
+          <h1 className="text-5xl font-bold text-white mb-6">{t('brand')}</h1>
           <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-            Manage your Stacey Fountain and Stacey Farm operations with ease. Inventory, sales, and reporting all in one place.
+            {t('tagline')}
           </p>
           <div className="space-y-4 text-blue-100">
             <div className="flex items-start gap-3">
               <Icon name="inventory" className="mt-1 h-6 w-6 flex-none" />
-              <span>Real-time inventory tracking</span>
+              <span>{t('featureInventory')}</span>
             </div>
             <div className="flex items-start gap-3">
               <Icon name="dashboard" className="mt-1 h-6 w-6 flex-none" />
-              <span>Multi-location management</span>
+              <span>{t('featureMultiLocation')}</span>
             </div>
             <div className="flex items-start gap-3">
               <Icon name="sales" className="mt-1 h-6 w-6 flex-none" />
-              <span>Comprehensive reporting</span>
+              <span>{t('featureReporting')}</span>
             </div>
           </div>
         </div>
@@ -62,14 +64,14 @@ export default function Login() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
               <Icon name="sales" className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Stacey POS</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t('brand')}</h1>
           </div>
-          <p className="text-gray-500 mt-2">Point of Sale Management System</p>
+          <p className="text-gray-500 mt-2">{t('subtitle')}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
-          <p className="text-gray-500 text-sm mb-8">Sign in to your account to continue</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('welcomeBack')}</h2>
+          <p className="text-gray-500 text-sm mb-8">{t('signInPrompt')}</p>
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -80,7 +82,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
+                {t('emailLabel')}
               </label>
               <input
                 id="email"
@@ -88,14 +90,14 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
-                placeholder="you@example.com"
+                placeholder={t('emailPlaceholder')}
                 disabled={loading}
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                {t('passwordLabel')}
               </label>
               <input
                 id="password"
@@ -103,7 +105,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
-                placeholder="********"
+                placeholder={t('passwordPlaceholder')}
                 disabled={loading}
               />
             </div>
@@ -119,17 +121,17 @@ export default function Login() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Signing in...
+                  {t('signingIn')}
                 </span>
               ) : (
-                'Sign in'
+                t('signIn')
               )}
             </button>
           </form>
         </div>
 
         <p className="text-center text-gray-500 text-xs mt-6">
-          (c) 2026 Stacey Enterprises. All rights reserved.
+          {t('copyright')}
         </p>
       </div>
     </div>

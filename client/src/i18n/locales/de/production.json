@@ -1,0 +1,50 @@
+{
+  "fountainOnly": "Die Produktionsverfolgung ist nur für Stacey Fountain verfügbar.",
+  "title": "Produktion",
+  "subtitle": "Rohstoffe und Produktionschargen für Stacey Fountain",
+  "enterPositiveRestockQty": "Geben Sie eine positive Nachfüllmenge ein",
+  "restockRecorded": "Nachfüllung erfasst",
+  "selectBottledFields": "Wählen Sie ein Produkt, eine Preform-Variante und geben Sie die produzierten Flaschen ein",
+  "bottledBatchRecorded": "Produktionscharge für Flaschenwasser erfasst",
+  "selectSachetFields": "Wählen Sie ein Produkt und geben Sie die produzierten Beutel ein",
+  "sachetBatchRecorded": "Produktionscharge für Beutelwasser erfasst",
+  "rawMaterials": {
+    "heading": "Rohstoffe",
+    "colMaterial": "Material",
+    "colStock": "Bestand",
+    "colPieces": "Stück",
+    "colRestock": "Nachfüllen",
+    "lowStock": "NIEDRIGER BESTAND",
+    "qtyPlaceholder": "Menge",
+    "restockButton": "Nachfüllen"
+  },
+  "bottledForm": {
+    "heading": "Flaschenwasser-Charge erfassen",
+    "selectBottleSize": "Flaschengröße auswählen",
+    "selectPreformVariant": "Verwendete Preform-Variante auswählen",
+    "bottlesProducedPlaceholder": "Produzierte Flaschen",
+    "preformsLeakedPlaceholder": "Geplatzte Preforms (beim Blasen)",
+    "notesPlaceholder": "Notizen (optional)",
+    "submitButton": "Flaschencharge erfassen"
+  },
+  "sachetForm": {
+    "heading": "Beutelwasser-Charge erfassen",
+    "selectSachetProduct": "Beutelprodukt auswählen",
+    "sachetsProducedPlaceholder": "Produzierte Beutel",
+    "sachetsLeakedPlaceholder": "Geplatzte/gerissene Beutel (beim Versiegeln)",
+    "notesPlaceholder": "Notizen (optional)",
+    "submitButton": "Beutelcharge erfassen"
+  },
+  "batches": {
+    "heading": "Letzte Produktionschargen",
+    "colDate": "Datum",
+    "colLine": "Linie",
+    "colProduct": "Produkt",
+    "colQtyProduced": "Produzierte Menge",
+    "colLeakage": "Ausschuss",
+    "colRecordedBy": "Erfasst von",
+    "noneRecorded": "Noch keine Produktion erfasst",
+    "bottlesAndPacks": "{{bottles}} Flaschen ({{packs}} Packungen)",
+    "sachetsAndBags": "{{sachets}} Beutel ({{bags}} Säcke)"
+  }
+}

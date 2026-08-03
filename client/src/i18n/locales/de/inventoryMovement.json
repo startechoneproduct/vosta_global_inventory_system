@@ -1,0 +1,26 @@
+{
+  "title": "Lagerbewegung",
+  "subtitle": "Vollständiges Verzeichnis jeder Bestandsänderung – Verkäufe, Nachbestellungen, Retouren, Produktion und Abschreibungen",
+  "loadError": "Lagerbewegungen konnten nicht geladen werden",
+  "unknownProduct": "Unbekanntes Produkt",
+  "noMovements": "Noch keine Lagerbewegungen erfasst",
+  "columns": {
+    "product": "Produkt",
+    "type": "Typ",
+    "quantity": "Menge",
+    "balanceAfter": "Bestand danach",
+    "performedBy": "Durchgeführt von",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "store": "Filiale"
+  },
+  "types": {
+    "in": "Wareneingang",
+    "out": "Warenausgang",
+    "return_in": "Retoure",
+    "production_in": "Produktionszugang",
+    "sale": "Verkauf",
+    "damage_out": "Abschreibung (Schaden)",
+    "manual_past_sale": "Manueller Altverkauf"
+  }
+}

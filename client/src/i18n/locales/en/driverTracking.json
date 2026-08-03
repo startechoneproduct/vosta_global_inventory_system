@@ -1,0 +1,30 @@
+{
+  "title": "Driver Tracking",
+  "subtitleGm": "Real-time location of all drivers",
+  "subtitleDriver": "Report your location and delivery targets",
+  "selfView": {
+    "currentLocationHeading": "My Current Location",
+    "locating": "Locating...",
+    "sendLocationUpdate": "📍 Send Location Update",
+    "stopAutoTracking": "Stop Auto-Tracking",
+    "startAutoTracking": "Start Auto-Tracking",
+    "currentLocationLabel": "Current location: ",
+    "targetsHeading": "Targeted Delivery Locations for Today",
+    "targetsSubtitle": "Type an address - no need to look up coordinates.",
+    "nicknamePlaceholder": "Nickname (optional)",
+    "addressPlaceholder": "Address (e.g. Wuse Market, Abuja)",
+    "addLocation": "+ Add Location",
+    "saveTargets": "Save Targets",
+    "geolocationNotSupported": "Geolocation is not supported by this browser",
+    "locationUpdatedAt": "Location updated at {{time}}",
+    "addAtLeastOneAddress": "Add at least one delivery address",
+    "targetsSaved": "Target locations saved"
+  },
+  "leadership": {
+    "colDriver": "Driver",
+    "colCurrentLocation": "Current Location",
+    "colTargetsToday": "Targets Today",
+    "colLastUpdate": "Last Update",
+    "noData": "No driver location data yet"
+  }
+}

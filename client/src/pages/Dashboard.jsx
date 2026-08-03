@@ -1,24 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts';
 import api from '../services/api';
 import Icon from '../components/ui/Icons'; // adjust path to wherever your Icon.jsx lives
-
-const PERIODS = [
-  { value: '2days', label: '2 Days' },
-  { value: '7days', label: '7 Days' },
-  { value: '1week', label: '1 Week' },
-  { value: '1month', label: '1 Month' },
-  { value: '1year', label: '1 Year' },
-];
+import { formatCurrency } from '../utils/formatCurrency';
+import { useLanguage } from '../context/LanguageContext';
 
 const PIE_COLORS = ['#3B82F6', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1'];
-
-function formatCurrency(amount = 0) {
-  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount / 100);
-}
 
 const ACCENT_CLASSES = {
   blue: 'text-blue-600',
@@ -41,6 +32,7 @@ function StatCard({ label, value, icon, accent = 'blue' }) {
 
 
 function ExpenseLegend({ items }) {
+  const { language } = useLanguage();
   const total = items.reduce((sum, item) => sum + item.total, 0);
 
   return (
@@ -58,7 +50,7 @@ function ExpenseLegend({ items }) {
             </span>
             <span className="flex items-center gap-2 flex-shrink-0">
               <span className="text-gray-400 text-xs">{percent}%</span>
-              <span className="font-medium text-gray-900">{formatCurrency(item.total)}</span>
+              <span className="font-medium text-gray-900">{formatCurrency(item.total, language)}</span>
             </span>
           </li>
         );
@@ -70,6 +62,9 @@ function ExpenseLegend({ items }) {
 
 function ProfitBreakdownPanel({ breakdown }) {
   const [open, setOpen] = useState(false);
+
+  const { t } = useTranslation('dashboard');
+  const { language } = useLanguage();
 
   if (!breakdown) return null;
 
@@ -86,12 +81,14 @@ function ProfitBreakdownPanel({ breakdown }) {
   const isProfit = netProfit >= 0;
 
   const rows = [
-    { label: 'Revenue', value: revenue, sign: '' },
-    { label: writeOffLabel || 'Returns Value', value: writeOffValue, sign: '−' },
-    { label: 'Cost of Goods Sold', value: costOfGoodsSold, sign: '−' },
-    { label: 'Gross Profit', value: grossProfit, sign: '=', emphasis: true },
-    { label: 'Approved Expenses', value: approvedExpenses, sign: '−' },
-    { label: isProfit ? 'Net Profit' : 'Net Loss', value: Math.abs(netProfit), sign: '=', emphasis: true },
+    { label: t('profitBreakdown.revenue'), value: revenue, sign: '' },
+    // writeOffLabel comes from the API (backend/src/utils/analytics.js) and is
+    // not translated here; the fallback below is our own UI copy.
+    { label: writeOffLabel || t('profitBreakdown.returnsValue'), value: writeOffValue, sign: '−' },
+    { label: t('profitBreakdown.costOfGoodsSold'), value: costOfGoodsSold, sign: '−' },
+    { label: t('profitBreakdown.grossProfit'), value: grossProfit, sign: '=', emphasis: true },
+    { label: t('profitBreakdown.approvedExpenses'), value: approvedExpenses, sign: '−' },
+    { label: isProfit ? t('profitBreakdown.netProfit') : t('profitBreakdown.netLoss'), value: Math.abs(netProfit), sign: '=', emphasis: true },
   ];
 
   return (
@@ -100,7 +97,7 @@ function ProfitBreakdownPanel({ breakdown }) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
       >
-        <span className="text-sm font-medium text-gray-700">How is profit/loss calculated?</span>
+        <span className="text-sm font-medium text-gray-700">{t('profitBreakdown.toggle')}</span>
         <Icon name={open ? 'chevronUp' : 'chevronDown'} className="w-4 h-4 text-gray-400" />
       </button>
 
@@ -117,14 +114,14 @@ function ProfitBreakdownPanel({ breakdown }) {
                 {row.sign && <span className="text-gray-400 w-3">{row.sign}</span>}
                 {row.label}
               </span>
-              <span>{formatCurrency(row.value)}</span>
+              <span>{formatCurrency(row.value, language)}</span>
             </div>
           ))}
           <p className="text-xs text-gray-400 pt-2">
             {writeOffLabel === 'Damaged Stock (Write-Off)'
-              ? 'Damaged stock is valued at cost price, since it was written off before ever being sold.'
-              : "Returns Value uses the product's price at the moment the return was recorded, so later price changes don't affect past periods."}
-            {' '}Cost of Goods Sold only reflects products that have a cost price set.
+              ? t('profitBreakdown.damagedStockNote')
+              : t('profitBreakdown.returnsValueNote')}
+            {' '}{t('profitBreakdown.cogsNote')}
           </p>
         </div>
       )}
@@ -132,7 +129,101 @@ function ProfitBreakdownPanel({ breakdown }) {
   );
 }
 
+// Stock/production quantities are stored as exact decimals internally (a
+// batch rarely consumes/produces a whole number of bags/bundles/rolls/packs),
+// but the dashboard only ever needs to show an at-a-glance whole number -
+// round for display only, never for the underlying stock math.
+function roundDisplay(n) {
+  return Math.round(n);
+}
+
+function InventorySummaryPanel({ data }) {
+  const { t } = useTranslation('dashboard');
+  if (!data) return null;
+  const { stockInUnits, stockOutUnits, stockOutRatePct, lowStockCount, turnover } = data;
+
+  const tiles = [
+    { label: t('inventorySummary.stockIn'), value: roundDisplay(stockInUnits).toLocaleString() },
+    { label: t('inventorySummary.stockOut'), value: roundDisplay(stockOutUnits).toLocaleString() },
+    { label: t('inventorySummary.stockOutRate'), value: `${stockOutRatePct.toFixed(2)}%` },
+    { label: t('inventorySummary.lowStockItems'), value: lowStockCount },
+    { label: t('inventorySummary.inventoryTurnover'), value: turnover.toFixed(2) },
+  ];
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('inventorySummary.title')}</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {tiles.map((tile) => (
+          <div key={tile.label} className="border border-gray-100 rounded-lg p-3">
+            <p className="text-xs text-gray-500">{tile.label}</p>
+            <p className="text-xl font-bold text-gray-900">{tile.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProductionPanel({ data }) {
+  const { t } = useTranslation('dashboard');
+  if (!data) return null;
+  const { rawMaterials, bottled, sachet } = data;
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+      <h2 className="text-lg font-semibold text-gray-900">{t('production.title')}</h2>
+
+      {rawMaterials.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {rawMaterials.map((m) => (
+            <div key={m.materialKey} className="border border-gray-100 rounded-lg p-3">
+              <p className="text-xs text-gray-500 truncate">{m.name}</p>
+              <p className="text-lg font-bold text-gray-900">
+                {roundDisplay(m.currentStockPurchaseUnits)} <span className="text-xs font-normal text-gray-500">{m.purchaseUnitName}(s)</span>
+              </p>
+              <p className="text-xs text-gray-400">{roundDisplay(m.currentStockPieces).toLocaleString()} {t('production.pcs')}</p>
+              {m.lowStock && <span className="text-xs font-semibold text-red-600">{t('production.lowStock')}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+        <div>
+          <p className="text-sm font-medium text-gray-700">{t('production.bottledWaterPeriod')}</p>
+          <p className="text-sm text-gray-600">
+            {roundDisplay(bottled.packsProducedPeriod)} {t('production.packs')} · {bottled.bottlesProducedPeriod} {t('production.bottles')}
+            {bottled.preformLeakageCountPeriod > 0 && (
+              <span className="text-red-600"> · {bottled.preformLeakageCountPeriod} {t('production.preformsLeaked')}</span>
+            )}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-700">{t('production.sachetWaterPeriod')}</p>
+          <p className="text-sm text-gray-600">
+            {roundDisplay(sachet.bagsProducedPeriod)} {t('production.bags')} · {sachet.sachetsProducedPeriod} {t('production.sachets')}
+            {sachet.sachetLeakageCountPeriod > 0 && (
+              <span className="text-red-600"> · {sachet.sachetLeakageCountPeriod} {t('production.sachetsLeaked')}</span>
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard({ user }) {
+  const { t } = useTranslation('dashboard');
+
+  const PERIODS = [
+    { value: '2days', label: t('periods.twoDays') },
+    { value: '7days', label: t('periods.sevenDays') },
+    { value: '1week', label: t('periods.oneWeek') },
+    { value: '1month', label: t('periods.oneMonth') },
+    { value: '1year', label: t('periods.oneYear') },
+  ];
+
   const isGm = user?.role === 'owner' || user?.role === 'general_manager';
   const isDriver = user?.role === 'driver';
 
@@ -148,11 +239,11 @@ export default function Dashboard({ user }) {
       setData(response.data.data);
       setError('');
     } catch (err) {
-      setError(err.message || 'Failed to load dashboard');
+      setError(err.message || t('loadError'));
     } finally {
       setLoading(false);
     }
-  }, [period]);
+  }, [period, t]);
 
   useEffect(() => {
     fetchDashboard();
@@ -174,8 +265,8 @@ export default function Dashboard({ user }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1 capitalize">{user?.role?.replace('_', ' ')} overview</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="text-gray-500 mt-1 capitalize">{user?.role?.replace('_', ' ')} {t('roleOverviewSuffix')}</p>
         </div>
 
         {!isDriver && (
@@ -203,28 +294,31 @@ export default function Dashboard({ user }) {
 }
 
 function DriverDashboard({ data }) {
+  const { t } = useTranslation('dashboard');
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard label="My Customers" value={data.customersCount} icon="customers" />
-      <StatCard label="Products Sold (Week)" value={data.productsSold.week} icon="inventory" />
-      <StatCard label="Products Sold (Month)" value={data.productsSold.month} icon="inventory" />
-      <StatCard label="Products Sold (Year)" value={data.productsSold.year} icon="inventory" />
-      <StatCard label="Distance Covered (Week)" value={`${data.distanceKm.week.toFixed(1)} km`} icon="truck" />
-      <StatCard label="Distance Covered (Month)" value={`${data.distanceKm.month.toFixed(1)} km`} icon="truck" />
-      <StatCard label="Distance Covered (Year)" value={`${data.distanceKm.year.toFixed(1)} km`} icon="truck" />
-      <StatCard label="Returns" value={data.returnsCount} icon="returns" accent="red" />
+      <StatCard label={t('driver.myCustomers')} value={data.customersCount} icon="customers" />
+      <StatCard label={t('driver.productsSoldWeek')} value={data.productsSold.week} icon="inventory" />
+      <StatCard label={t('driver.productsSoldMonth')} value={data.productsSold.month} icon="inventory" />
+      <StatCard label={t('driver.productsSoldYear')} value={data.productsSold.year} icon="inventory" />
+      <StatCard label={t('driver.distanceCoveredWeek')} value={`${data.distanceKm.week.toFixed(1)} km`} icon="truck" />
+      <StatCard label={t('driver.distanceCoveredMonth')} value={`${data.distanceKm.month.toFixed(1)} km`} icon="truck" />
+      <StatCard label={t('driver.distanceCoveredYear')} value={`${data.distanceKm.year.toFixed(1)} km`} icon="truck" />
+      <StatCard label={t('driver.returns')} value={data.returnsCount} icon="returns" accent="red" />
     </div>
   );
 }
 
 function ManagerDashboard({ data }) {
+  const { t } = useTranslation('dashboard');
+  const { language } = useLanguage();
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Today's Sales" value={formatCurrency(data.totalSalesToday)} icon="sales" />
-        <StatCard label="Total Stock" value={data.totalStock} icon="inventory" />
+        <StatCard label={t('stats.todaysSales')} value={formatCurrency(data.totalSalesToday, language)} icon="sales" />
+        <StatCard label={t('stats.totalStock')} value={roundDisplay(data.totalStock).toLocaleString()} icon="inventory" />
         <StatCard
-          label={data.storeType === 'farm' ? 'Damaged/Broken Eggs' : 'Returns'}
+          label={data.storeType === 'farm' ? t('stats.damagedEggs') : t('stats.returns')}
           value={data.returnsCount}
           icon="returns"
           accent="red"
@@ -232,32 +326,38 @@ function ManagerDashboard({ data }) {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Sales / Stock Trend</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('charts.salesStockTrend')}</h2>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={data.stockTrend}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="date" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip formatter={(v) => formatCurrency(v)} />
+            <Tooltip formatter={(v) => formatCurrency(v, language)} />
             <Line type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      <InventorySummaryPanel data={data.inventoryOverview} />
+
+      {data.storeType === 'fountain' && data.productionSummary && <ProductionPanel data={data.productionSummary} />}
     </div>
   );
 }
 
 function GmDashboard({ data }) {
+  const { t } = useTranslation('dashboard');
+  const { language } = useLanguage();
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Today's Sales" value={formatCurrency(data.totalSalesToday)} icon="sales" />
-        <StatCard label="Total Stock" value={data.totalStock} icon="inventory" />
-        <StatCard label="Profit (period)" value={formatCurrency(data.profit)} icon="trendingUp" accent="green" />
-        <StatCard label="Loss (period)" value={formatCurrency(data.loss)} icon="trendingDown" accent="red" />
-        <StatCard label="Total Expense" value={formatCurrency(data.totalExpense)} icon="expenses" />
+        <StatCard label={t('stats.todaysSales')} value={formatCurrency(data.totalSalesToday, language)} icon="sales" />
+        <StatCard label={t('stats.totalStock')} value={roundDisplay(data.totalStock).toLocaleString()} icon="inventory" />
+        <StatCard label={t('stats.profitPeriod')} value={formatCurrency(data.profit, language)} icon="trendingUp" accent="green" />
+        <StatCard label={t('stats.lossPeriod')} value={formatCurrency(data.loss, language)} icon="trendingDown" accent="red" />
+        <StatCard label={t('stats.totalExpense')} value={formatCurrency(data.totalExpense, language)} icon="expenses" />
         <StatCard
-          label={data.storeType === 'farm' ? 'Damaged/Broken Eggs' : 'Returns'}
+          label={data.storeType === 'farm' ? t('stats.damagedEggs') : t('stats.returns')}
           value={data.returnsCount}
           icon="returns"
           accent="red"
@@ -267,15 +367,19 @@ function GmDashboard({ data }) {
       {/* NEW: profit breakdown panel */}
       <ProfitBreakdownPanel breakdown={data.profitBreakdown} />
 
+      <InventorySummaryPanel data={data.inventoryOverview} />
+
+      {data.storeType === 'fountain' && data.productionSummary && <ProductionPanel data={data.productionSummary} />}
+
       {data.lowStockProducts.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
-            <Icon name="alertTriangle" className="w-4 h-4" /> Low stock alert
+            <Icon name="alertTriangle" className="w-4 h-4" /> {t('lowStockAlert')}
           </p>
           <div className="flex flex-wrap gap-2">
             {data.lowStockProducts.map((p) => (
               <span key={p.productId} className="badge-yellow">
-                {p.name}: {p.currentStock} left
+                {p.name}: {roundDisplay(p.currentStock)} {t('left')}
               </span>
             ))}
           </div>
@@ -284,20 +388,20 @@ function GmDashboard({ data }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Sales Trend</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('charts.salesTrend')}</h2>
           <ResponsiveContainer width="100%" height={260}>
             <LineChart data={data.salesTrend}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(v) => formatCurrency(v)} />
+              <Tooltip formatter={(v) => formatCurrency(v, language)} />
               <Line type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Best Selling Products</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('charts.bestSellingProducts')}</h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={data.bestSellers} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -312,20 +416,20 @@ function GmDashboard({ data }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Stock Health by Product</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('charts.stockHealthByProduct')}</h2>
           <div className="space-y-3">
             {data.stockHealthByProduct.map((p) => (
               <div key={p.name} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{p.name}</p>
-                  <p className="text-xs text-gray-500">{p.currentStock} in stock · {p.unitsSoldInPeriod} sold this period</p>
+                  <p className="text-xs text-gray-500">{roundDisplay(p.currentStock)} {t('stockHealth.inStock')} · {p.unitsSoldInPeriod} {t('stockHealth.soldThisPeriod')}</p>
                 </div>
                 <span
                   className={
                     p.status === 'healthy' ? 'badge-green' : p.status === 'low_stock' ? 'badge-yellow' : 'badge-red'
                   }
                 >
-                  {p.status.replace('_', ' ')}
+                  {t(`status.${p.status}`)}
                 </span>
               </div>
             ))}
@@ -333,9 +437,9 @@ function GmDashboard({ data }) {
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Expenses by Category</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('charts.expensesByCategory')}</h2>
           {data.expensePieChart.length === 0 ? (
-            <p className="text-gray-500 text-sm">No expenses recorded in this period.</p>
+            <p className="text-gray-500 text-sm">{t('charts.noExpenses')}</p>
           ) : (
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <ResponsiveContainer width="100%" height={220} className="sm:flex-1">
@@ -354,7 +458,7 @@ function GmDashboard({ data }) {
                       <Cell key={entry.category} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v) => formatCurrency(v)} />
+                  <Tooltip formatter={(v) => formatCurrency(v, language)} />
                 </PieChart>
               </ResponsiveContainer>
 

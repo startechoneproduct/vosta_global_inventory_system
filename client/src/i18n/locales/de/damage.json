@@ -1,0 +1,27 @@
+{
+  "title": "Beschädigte / Zerbrochene Eier",
+  "subtitle": "Erfassen Sie Eier, die zerbrochen, gerissen oder verdorben sind, bevor sie verkauft werden konnten",
+  "reasons": {
+    "broken": "Zerbrochen",
+    "cracked": "Gerissen",
+    "rotten": "Verdorben",
+    "contaminated": "Verunreinigt",
+    "transport_damage": "Transportschaden",
+    "other": "Sonstiges"
+  },
+  "totalRecorded": "Insgesamt erfasst",
+  "estimatedLoss": "Geschätzter Verlust",
+  "selectProduct": "Produkt auswählen",
+  "quantity": "Menge",
+  "notesOptional": "Notizen (optional)",
+  "recordDamage": "Schaden erfassen",
+  "recentlyRecorded": "Kürzlich erfasst",
+  "colDate": "Datum",
+  "colProduct": "Produkt",
+  "colQty": "Menge",
+  "colReason": "Grund",
+  "colLoss": "Verlust",
+  "colRecordedBy": "Erfasst von",
+  "noneRecorded": "Noch keine Schäden erfasst",
+  "selectProductAndQuantity": "Wählen Sie ein Produkt aus und geben Sie eine Menge ein"
+}

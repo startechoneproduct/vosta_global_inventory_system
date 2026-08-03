@@ -19,7 +19,11 @@ api.interceptors.request.use(
     if (activeStoreId) {
       if (config.method === 'get' || config.method === 'delete') {
         config.params = { ...config.params, storeId: config.params?.storeId || activeStoreId };
-      } else {
+      } else if (!config.data || typeof config.data === 'object') {
+        // On a token-refresh retry, axios has already serialized config.data
+        // into a JSON string by the time this interceptor runs again -
+        // spreading a string here would shred it into character-indexed
+        // properties instead of merging fields, so only merge into objects.
         config.data = { ...(config.data || {}), storeId: config.data?.storeId || activeStoreId };
       }
     }
@@ -30,11 +34,35 @@ api.interceptors.request.use(
 );
 
 // ============ RESPONSE INTERCEPTOR ============
+// Access tokens are short-lived (3 min) - on a 401 we try one silent
+// refresh via the httpOnly refresh cookie before giving up and sending
+// the user back to /login. Concurrent 401s share a single refresh call.
+let refreshPromise = null;
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original?._retry && !original?.url?.includes('/auth/')) {
+      original._retry = true;
+      try {
+        refreshPromise = refreshPromise || api.post('/auth/refresh');
+        const { data } = await refreshPromise;
+        refreshPromise = null;
+        localStorage.setItem('accessToken', data.data.accessToken);
+        original.headers.Authorization = `Bearer ${data.data.accessToken}`;
+        return api(original);
+      } catch (refreshError) {
+        refreshPromise = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('activeStoreId');
+        window.location.href = '/login';
+        return Promise.reject(new Error('Session expired. Please log in again.'));
+      }
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('activeStoreId');
       window.location.href = '/login';
       return Promise.reject(new Error('Session expired. Please log in again.'));
     }

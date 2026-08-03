@@ -2,14 +2,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useEffect, useState } from 'react';
 import api from './services/api';
 import { StoreProvider } from './context/StoreContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 // Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Sales from './pages/Sales';
 import Inventory from './pages/Inventory';
+import InventoryMovement from './pages/InventoryMovement';
 import Expenses from './pages/Expenses';
-import Attendance from './pages/Attendance';
 import ActivityLog from './pages/ActivityLog';
 import Customers from './pages/Customers';
 import Equipment from './pages/Equipment';
@@ -18,6 +19,8 @@ import Returns from './pages/Returns';
 import StaffManagement from './pages/StaffManagement';
 import Products from './pages/Products';
 import ChangePassword from './pages/ChangePassword';
+import Production from './pages/Production';
+import Vaccination from './pages/Vaccination';
 
 // Layout
 import MainLayout from './components/Layout/MainLayout';
@@ -82,6 +85,7 @@ function RequireRole({ user, allow, children }) {
 
 function App() {
   return (
+    <LanguageProvider>
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -91,7 +95,18 @@ function App() {
         <Route path="/products" element={<ProtectedRoute>{({ user }) => <Products user={user} />}</ProtectedRoute>} />
         <Route path="/inventory" element={<ProtectedRoute>{({ user }) => <Inventory user={user} />}</ProtectedRoute>} />
         <Route path="/expenses" element={<ProtectedRoute>{({ user }) => <Expenses user={user} />}</ProtectedRoute>} />
-        <Route path="/attendance" element={<ProtectedRoute>{() => <Attendance />}</ProtectedRoute>} />
+        <Route
+          path="/inventory-movement"
+          element={
+            <ProtectedRoute>
+              {({ user }) => (
+                <RequireRole user={user} allow={['gm']}>
+                  <InventoryMovement />
+                </RequireRole>
+              )}
+            </ProtectedRoute>
+          }
+        />
         <Route path="/activity-log" element={<ProtectedRoute>{({ user }) => <ActivityLog user={user} />}</ProtectedRoute>} />
         <Route path="/customers" element={<ProtectedRoute>{({ user }) => <Customers user={user} />}</ProtectedRoute>} />
         <Route path="/returns" element={<ProtectedRoute>{({ user }) => <Returns user={user} />}</ProtectedRoute>} />
@@ -125,11 +140,36 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/production"
+          element={
+            <ProtectedRoute>
+              {({ user }) => (
+                <RequireRole user={user} allow={['manager', 'accountant', 'gm']}>
+                  <Production user={user} />
+                </RequireRole>
+              )}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vaccination"
+          element={
+            <ProtectedRoute>
+              {({ user }) => (
+                <RequireRole user={user} allow={['manager', 'supervisor', 'accountant', 'gm']}>
+                  <Vaccination user={user} />
+                </RequireRole>
+              )}
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
+    </LanguageProvider>
   );
 }
 

@@ -1,5 +1,5 @@
 const express = require('express');
-const { Damage, Product, ActivityLog } = require('../models/index.js');
+const { Damage, Product, ActivityLog, StockMovement } = require('../models/index.js');
 const { verifyToken, resolveStoreScope } = require('../middleware/auth.js');
 const { notifyStoreLeadership } = require('../utils/notify.js');
 
@@ -30,8 +30,8 @@ router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
     const resolvedReason = REASONS.includes(reason) ? reason : 'other';
     const costValue = (product.costPerUnit || 0) * quantity;
 
-    
-    await Product.findByIdAndUpdate(productId, { $inc: { currentStock: -quantity } });
+
+    const updated = await Product.findByIdAndUpdate(productId, { $inc: { currentStock: -quantity } }, { new: true });
 
     const damage = await Damage.create({
       storeId,
@@ -43,6 +43,18 @@ router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
       recordedBy: req.user.userId,
       recordedByRole: req.user.role,
       notes,
+    });
+
+    // Previously damages bypassed the stock ledger entirely - added so the
+    // Inventory Movement module has a complete record of stock changes.
+    await StockMovement.create({
+      storeId,
+      productId,
+      type: 'damage_out',
+      quantity,
+      balanceAfter: updated?.currentStock,
+      recordedBy: req.user.userId,
+      notes: `Damage: ${resolvedReason}`,
     });
 
     await ActivityLog.create({

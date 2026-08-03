@@ -1,0 +1,25 @@
+{
+  "title": "Equipment",
+  "subtitle": "Track factory equipment and maintenance schedules",
+  "nameRequired": "Equipment name is required",
+  "equipmentAdded": "Equipment added",
+  "namePlaceholder": "Equipment name",
+  "typePlaceholder": "Type (e.g. Filling Machine)",
+  "serialNumberPlaceholder": "Serial number",
+  "serviceIntervalPlaceholder": "Service interval (days)",
+  "notesPlaceholder": "Notes",
+  "addEquipment": "Add Equipment",
+  "colEquipment": "Equipment",
+  "colType": "Type",
+  "colLastServiced": "Last Serviced",
+  "colNextDue": "Next Due",
+  "colStatus": "Status",
+  "noneRecorded": "No equipment recorded yet",
+  "markServiced": "Mark Serviced",
+  "status": {
+    "operational": "Operational",
+    "due_for_service": "Due for Service",
+    "under_maintenance": "Under Maintenance",
+    "out_of_service": "Out of Service"
+  }
+}
