@@ -138,28 +138,30 @@ function ExpenseOverview() {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">{t('overview.expenseTypeBreakdown')}</h2>
         </div>
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('overview.colExpenseType')}</th>
-              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">{t('overview.colTotalExpense')}</th>
-              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">{t('overview.colPercentOfTotal')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.byExpenseType.length === 0 ? (
-              <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-500">{t('overview.noExpensesPeriodTable')}</td></tr>
-            ) : (
-              data.byExpenseType.map((row) => (
-                <tr key={row.category} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 text-sm font-medium text-gray-900">{row.category}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600 text-right">{formatCurrency(row.total, language)}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600 text-right">{row.percentOfTotal.toFixed(1)}%</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('overview.colExpenseType')}</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">{t('overview.colTotalExpense')}</th>
+                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">{t('overview.colPercentOfTotal')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.byExpenseType.length === 0 ? (
+                <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-500">{t('overview.noExpensesPeriodTable')}</td></tr>
+              ) : (
+                data.byExpenseType.map((row) => (
+                  <tr key={row.category} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{row.category}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600 text-right">{formatCurrency(row.total, language)}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600 text-right">{row.percentOfTotal.toFixed(1)}%</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

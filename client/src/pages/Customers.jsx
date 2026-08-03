@@ -326,50 +326,52 @@ export default function Customers({ user }) {
           )}
 
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.name')}</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.location')}</th>
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.sachetBagsLifetime')}</th>}
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.bottlesLifetime')}</th>}
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.tokens')}</th>}
-                  {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.freePacksEarned')}</th>}
-                  {isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.onSchedule')}</th>}
-                  {isDriver && !isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.redeem')}</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {customers.length === 0 ? (
-                  <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">{t('table.noCustomersYet')}</td></tr>
-                ) : (
-                  customers.map((c) => (
-                    <tr key={c._id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-6 py-3 font-medium text-gray-900">{c.name}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{c.location || '-'}</td>
-                      {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{Math.round(c.weeklySachetBags)}</td>}
-                      {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{Math.round(c.weeklyBottles)}</td>}
-                      {!isFarm && <td className="px-6 py-3 text-sm font-semibold text-blue-600">{Math.round(c.tokens - c.tokensRedeemed)}</td>}
-                      {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{c.freePacksEarned}</td>}
-                      {isFarm && (
-                        <td className="px-6 py-3">
-                          <span className={c.supplySchedule?.isOnSchedule ? 'badge-green' : 'badge-yellow'}>
-                            {c.supplySchedule?.isOnSchedule ? t('table.scheduledYes') : t('table.notScheduled')}
-                          </span>
-                        </td>
-                      )}
-                      {isDriver && !isFarm && (
-                        <td className="px-6 py-3">
-                          <button onClick={() => handleRedeem(c._id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                            {t('table.redeem')}
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.name')}</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.location')}</th>
+                    {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.sachetBagsLifetime')}</th>}
+                    {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.bottlesLifetime')}</th>}
+                    {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.tokens')}</th>}
+                    {!isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.freePacksEarned')}</th>}
+                    {isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.onSchedule')}</th>}
+                    {isDriver && !isFarm && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.redeem')}</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.length === 0 ? (
+                    <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">{t('table.noCustomersYet')}</td></tr>
+                  ) : (
+                    customers.map((c) => (
+                      <tr key={c._id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="px-6 py-3 font-medium text-gray-900">{c.name}</td>
+                        <td className="px-6 py-3 text-sm text-gray-600">{c.location || '-'}</td>
+                        {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{Math.round(c.weeklySachetBags)}</td>}
+                        {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{Math.round(c.weeklyBottles)}</td>}
+                        {!isFarm && <td className="px-6 py-3 text-sm font-semibold text-blue-600">{Math.round(c.tokens - c.tokensRedeemed)}</td>}
+                        {!isFarm && <td className="px-6 py-3 text-sm text-gray-600">{c.freePacksEarned}</td>}
+                        {isFarm && (
+                          <td className="px-6 py-3">
+                            <span className={c.supplySchedule?.isOnSchedule ? 'badge-green' : 'badge-yellow'}>
+                              {c.supplySchedule?.isOnSchedule ? t('table.scheduledYes') : t('table.notScheduled')}
+                            </span>
+                          </td>
+                        )}
+                        {isDriver && !isFarm && (
+                          <td className="px-6 py-3">
+                            <button onClick={() => handleRedeem(c._id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                              {t('table.redeem')}
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}

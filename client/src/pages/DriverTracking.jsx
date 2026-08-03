@@ -113,9 +113,9 @@ function DriverSelfView() {
         <h2 className="text-lg font-semibold text-gray-900">{t('selfView.targetsHeading')}</h2>
         <p className="text-xs text-gray-400">{t('selfView.targetsSubtitle')}</p>
         {targets.map((tgt, i) => (
-          <div key={i} className="flex gap-3">
+          <div key={i} className="flex flex-col sm:flex-row gap-3">
             <input
-              className="input-field w-40"
+              className="input-field sm:w-40"
               placeholder={t('selfView.nicknamePlaceholder')}
               value={tgt.label}
               onChange={(e) => updateTarget(i, 'label', e.target.value)}
@@ -128,7 +128,7 @@ function DriverSelfView() {
             />
           </div>
         ))}
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <button onClick={addTargetRow} className="text-blue-600 border border-blue-200 rounded-lg px-4 py-2 hover:bg-blue-50">
             {t('selfView.addLocation')}
           </button>
@@ -163,44 +163,46 @@ function LeadershipDriverMap() {
       {error && <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">{error}</div>}
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colDriver')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colCurrentLocation')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colTargetsToday')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colLastUpdate')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {drivers.length === 0 ? (
-              <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('leadership.noData')}</td></tr>
-            ) : (
-              drivers.map((d) => (
-                <tr key={d.driverId} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-gray-900">{d.driverName}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600 max-w-xs">
-                    {d.address ? (
-                      <a
-                        href={`https://www.google.com/maps?q=${encodeURIComponent(d.address)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue-600 hover:underline"
-                        title={d.address}
-                      >
-                        {d.address}
-                      </a>
-                    ) : '-'}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-600">
-                    {d.targetLocations.map((loc) => loc.label).join(', ') || '-'}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{d.lastUpdated ? new Date(d.lastUpdated).toLocaleTimeString('en-NG') : '-'}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colDriver')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colCurrentLocation')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colTargetsToday')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('leadership.colLastUpdate')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {drivers.length === 0 ? (
+                <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('leadership.noData')}</td></tr>
+              ) : (
+                drivers.map((d) => (
+                  <tr key={d.driverId} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 font-medium text-gray-900">{d.driverName}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600 max-w-xs">
+                      {d.address ? (
+                        <a
+                          href={`https://www.google.com/maps?q=${encodeURIComponent(d.address)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline"
+                          title={d.address}
+                        >
+                          {d.address}
+                        </a>
+                      ) : '-'}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-600">
+                      {d.targetLocations.map((loc) => loc.label).join(', ') || '-'}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{d.lastUpdated ? new Date(d.lastUpdated).toLocaleTimeString('en-NG') : '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

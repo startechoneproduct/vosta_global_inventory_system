@@ -88,38 +88,40 @@ export default function Equipment() {
       </form>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colEquipment')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colType')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colLastServiced')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colNextDue')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colStatus')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {equipment.length === 0 ? (
-              <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('noneRecorded')}</td></tr>
-            ) : (
-              equipment.map((eq) => (
-                <tr key={eq._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-gray-900">{eq.name}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{eq.type || '-'}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{eq.lastServiceDate ? new Date(eq.lastServiceDate).toLocaleDateString('en-NG') : '-'}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{eq.nextServiceDue ? new Date(eq.nextServiceDue).toLocaleDateString('en-NG') : '-'}</td>
-                  <td className="px-6 py-3"><span className={statusBadge(eq.status)}>{statusLabel(eq.status)}</span></td>
-                  <td className="px-6 py-3">
-                    <button onClick={() => markServiced(eq._id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                      {t('markServiced')}
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colEquipment')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colType')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colLastServiced')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colNextDue')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colStatus')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {equipment.length === 0 ? (
+                <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('noneRecorded')}</td></tr>
+              ) : (
+                equipment.map((eq) => (
+                  <tr key={eq._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 font-medium text-gray-900">{eq.name}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{eq.type || '-'}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{eq.lastServiceDate ? new Date(eq.lastServiceDate).toLocaleDateString('en-NG') : '-'}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{eq.nextServiceDue ? new Date(eq.nextServiceDue).toLocaleDateString('en-NG') : '-'}</td>
+                    <td className="px-6 py-3"><span className={statusBadge(eq.status)}>{statusLabel(eq.status)}</span></td>
+                    <td className="px-6 py-3">
+                      <button onClick={() => markServiced(eq._id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                        {t('markServiced')}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -115,51 +115,53 @@ export default function StaffManagement() {
       </form>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colName')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colEmail')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colRole')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colStatus')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colActions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {staff.length === 0 ? (
-              <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('table.noStaff')}</td></tr>
-            ) : (
-              staff.filter((s) => s.role !== 'owner').map((s) => (
-                <tr key={s._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-gray-900">{s.fullName}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{s.email}</td>
-                  <td className="px-6 py-3">
-                    <select
-                      value={s.role}
-                      onChange={(e) => handleRoleChange(s._id, e.target.value)}
-                      className="text-sm border border-gray-200 rounded-lg px-2 py-1"
-                    >
-                      {ASSIGNABLE_ROLES.map((r) => (
-                        <option key={r} value={r}>{t(`roles.${r}`)}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className={s.isActive ? 'badge-green' : 'badge-red'}>{s.isActive ? t('status.active') : t('status.inactive')}</span>
-                  </td>
-                  <td className="px-6 py-3 text-sm space-x-3">
-                    <button onClick={() => handleToggleActive(s._id, s.isActive)} className="text-blue-600 hover:text-blue-800 font-medium">
-                      {s.isActive ? t('actions.deactivate') : t('actions.activate')}
-                    </button>
-                    <button onClick={() => handleResetPassword(s._id)} className="text-gray-600 hover:text-gray-800 font-medium">
-                      {t('actions.resetPassword')}
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colName')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colEmail')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colRole')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colStatus')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('table.colActions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staff.length === 0 ? (
+                <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('table.noStaff')}</td></tr>
+              ) : (
+                staff.filter((s) => s.role !== 'owner').map((s) => (
+                  <tr key={s._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 font-medium text-gray-900">{s.fullName}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{s.email}</td>
+                    <td className="px-6 py-3">
+                      <select
+                        value={s.role}
+                        onChange={(e) => handleRoleChange(s._id, e.target.value)}
+                        className="text-sm border border-gray-200 rounded-lg px-2 py-1"
+                      >
+                        {ASSIGNABLE_ROLES.map((r) => (
+                          <option key={r} value={r}>{t(`roles.${r}`)}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className={s.isActive ? 'badge-green' : 'badge-red'}>{s.isActive ? t('status.active') : t('status.inactive')}</span>
+                    </td>
+                    <td className="px-6 py-3 text-sm space-x-3 whitespace-nowrap">
+                      <button onClick={() => handleToggleActive(s._id, s.isActive)} className="text-blue-600 hover:text-blue-800 font-medium">
+                        {s.isActive ? t('actions.deactivate') : t('actions.activate')}
+                      </button>
+                      <button onClick={() => handleResetPassword(s._id)} className="text-gray-600 hover:text-gray-800 font-medium">
+                        {t('actions.resetPassword')}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

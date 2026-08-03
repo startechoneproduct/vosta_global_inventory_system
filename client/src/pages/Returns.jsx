@@ -98,32 +98,34 @@ function FountainReturns() {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">{t('recentReturns')}</h2>
         </div>
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colDate')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colProduct')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colQty')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colReason')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colRecordedBy')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {returns.length === 0 ? (
-              <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('noneRecorded')}</td></tr>
-            ) : (
-              returns.map((r) => (
-                <tr key={r._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 text-sm text-gray-600">{new Date(r.timestamp).toLocaleString('en-NG')}</td>
-                  <td className="px-6 py-3 text-sm font-medium text-gray-900">{r.productName}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{Math.round(r.quantity)}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{r.reason || '-'}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{r.recordedBy?.fullName || '-'}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colDate')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colProduct')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colQty')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colReason')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colRecordedBy')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {returns.length === 0 ? (
+                <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">{t('noneRecorded')}</td></tr>
+              ) : (
+                returns.map((r) => (
+                  <tr key={r._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 text-sm text-gray-600">{new Date(r.timestamp).toLocaleString('en-NG')}</td>
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{r.productName}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{Math.round(r.quantity)}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{r.reason || '-'}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{r.recordedBy?.fullName || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -176,56 +176,58 @@ export default function Production({ user }) {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">{t('rawMaterials.heading')}</h2>
         </div>
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colMaterial')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colStock')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colPieces')}</th>
-              {canRecord && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colRestock')}</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {materials.map((m) => {
-              const lowStock = m.currentStockPurchaseUnits <= m.minThresholdPurchaseUnits;
-              return (
-                <tr key={m._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 text-sm font-medium text-gray-900">
-                    {m.name}
-                    {lowStock && <span className="ml-2 text-xs font-semibold text-red-600">{t('rawMaterials.lowStock')}</span>}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-600">
-                    {roundDisplay(m.currentStockPurchaseUnits)} {m.purchaseUnitName}(s)
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{roundDisplay(m.currentStockPieces).toLocaleString()}</td>
-                  {canRecord && (
-                    <td className="px-6 py-3">
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          min="0"
-                          step="any"
-                          className="input-field w-28"
-                          placeholder={t('rawMaterials.qtyPlaceholder')}
-                          value={restockQty[m._id] || ''}
-                          onChange={(e) => setRestockQty((prev) => ({ ...prev, [m._id]: e.target.value }))}
-                        />
-                        <button
-                          type="button"
-                          disabled={loading}
-                          className="btn-primary text-sm px-3"
-                          onClick={() => handleRestock(m._id)}
-                        >
-                          {t('rawMaterials.restockButton')}
-                        </button>
-                      </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colMaterial')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colStock')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colPieces')}</th>
+                {canRecord && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('rawMaterials.colRestock')}</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {materials.map((m) => {
+                const lowStock = m.currentStockPurchaseUnits <= m.minThresholdPurchaseUnits;
+                return (
+                  <tr key={m._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900">
+                      {m.name}
+                      {lowStock && <span className="ml-2 text-xs font-semibold text-red-600">{t('rawMaterials.lowStock')}</span>}
                     </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <td className="px-6 py-3 text-sm text-gray-600">
+                      {roundDisplay(m.currentStockPurchaseUnits)} {m.purchaseUnitName}(s)
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{roundDisplay(m.currentStockPieces).toLocaleString()}</td>
+                    {canRecord && (
+                      <td className="px-6 py-3">
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            className="input-field w-28"
+                            placeholder={t('rawMaterials.qtyPlaceholder')}
+                            value={restockQty[m._id] || ''}
+                            onChange={(e) => setRestockQty((prev) => ({ ...prev, [m._id]: e.target.value }))}
+                          />
+                          <button
+                            type="button"
+                            disabled={loading}
+                            className="btn-primary text-sm px-3"
+                            onClick={() => handleRestock(m._id)}
+                          >
+                            {t('rawMaterials.restockButton')}
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {canRecord && (
@@ -322,40 +324,42 @@ export default function Production({ user }) {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">{t('batches.heading')}</h2>
         </div>
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colDate')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colLine')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colProduct')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colQtyProduced')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colLeakage')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colRecordedBy')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {batches.length === 0 ? (
-              <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('batches.noneRecorded')}</td></tr>
-            ) : (
-              batches.map((b) => (
-                <tr key={b._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 text-sm text-gray-600">{new Date(b.timestamp).toLocaleString('en-NG')}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600 capitalize">{b.productLine}</td>
-                  <td className="px-6 py-3 text-sm font-medium text-gray-900">{b.finishedProductId?.name || b.finishedProductName}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">
-                    {b.productLine === 'bottled'
-                      ? t('batches.bottlesAndPacks', { bottles: b.bottlesProduced, packs: roundDisplay(b.packsProduced) })
-                      : t('batches.sachetsAndBags', { sachets: b.sachetsProduced, bags: roundDisplay(b.bagsProduced) })}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-red-600">
-                    {b.productLine === 'bottled' ? b.preformLeakageCount : b.sachetLeakageCount}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{b.recordedBy?.fullName || '-'}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colDate')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colLine')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colProduct')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colQtyProduced')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colLeakage')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('batches.colRecordedBy')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {batches.length === 0 ? (
+                <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500">{t('batches.noneRecorded')}</td></tr>
+              ) : (
+                batches.map((b) => (
+                  <tr key={b._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 text-sm text-gray-600">{new Date(b.timestamp).toLocaleString('en-NG')}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600 capitalize">{b.productLine}</td>
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{b.finishedProductId?.name || b.finishedProductName}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">
+                      {b.productLine === 'bottled'
+                        ? t('batches.bottlesAndPacks', { bottles: b.bottlesProduced, packs: roundDisplay(b.packsProduced) })
+                        : t('batches.sachetsAndBags', { sachets: b.sachetsProduced, bags: roundDisplay(b.bagsProduced) })}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-red-600">
+                      {b.productLine === 'bottled' ? b.preformLeakageCount : b.sachetLeakageCount}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{b.recordedBy?.fullName || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

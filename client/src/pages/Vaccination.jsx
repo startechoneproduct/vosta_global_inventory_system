@@ -111,7 +111,7 @@ export default function Vaccination() {
           value={form.dosage}
           onChange={(e) => setForm({ ...form, dosage: e.target.value })}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs text-gray-500">{t('administeredDate')}</label>
             <input
@@ -145,36 +145,38 @@ export default function Vaccination() {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">{t('recentRecords')}</h2>
         </div>
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colDate')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colType')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colName')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colBatchFlock')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colDosage')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colNextDue')}</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colRecordedBy')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.length === 0 ? (
-              <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">{t('noRecords')}</td></tr>
-            ) : (
-              records.map((r) => (
-                <tr key={r._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 text-sm text-gray-600">{new Date(r.administeredDate).toLocaleDateString('en-NG')}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600 capitalize">{r.type}</td>
-                  <td className="px-6 py-3 text-sm font-medium text-gray-900">{r.name}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{r.batchOrFlockLabel || '-'}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{r.dosage || '-'}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{r.nextDueDate ? new Date(r.nextDueDate).toLocaleDateString('en-NG') : '-'}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600">{r.administeredBy?.fullName || '-'}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colDate')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colType')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colName')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colBatchFlock')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colDosage')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colNextDue')}</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">{t('colRecordedBy')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.length === 0 ? (
+                <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">{t('noRecords')}</td></tr>
+              ) : (
+                records.map((r) => (
+                  <tr key={r._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-3 text-sm text-gray-600">{new Date(r.administeredDate).toLocaleDateString('en-NG')}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600 capitalize">{r.type}</td>
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{r.name}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{r.batchOrFlockLabel || '-'}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{r.dosage || '-'}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{r.nextDueDate ? new Date(r.nextDueDate).toLocaleDateString('en-NG') : '-'}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{r.administeredBy?.fullName || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

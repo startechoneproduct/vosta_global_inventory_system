@@ -333,11 +333,11 @@ export default function Sales({ user }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-3">
                 {items.map((item, index) => (
-                  <div key={index} className="flex gap-3 items-center">
+                  <div key={index} className="flex flex-wrap sm:flex-nowrap gap-3 items-center">
                     <select
                       value={item.productId}
                       onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                      className="input-field flex-1"
+                      className="input-field w-full sm:flex-1"
                     >
                       <option value="">{t('form.selectProduct')}</option>
                       {products.map((p) => (
@@ -352,7 +352,7 @@ export default function Sales({ user }) {
                       placeholder={t('form.qtyPlaceholder')}
                       value={item.quantity || ''}
                       onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                      className="input-field w-20"
+                      className="input-field flex-1 sm:flex-none sm:w-20"
                       min="0"
                     />
 
@@ -361,14 +361,14 @@ export default function Sales({ user }) {
                       placeholder={t('form.pricePlaceholder')}
                       value={item.pricePerUnit || ''}
                       onChange={(e) => handleItemChange(index, 'pricePerUnit', e.target.value)}
-                      className="input-field w-28"
+                      className="input-field flex-1 sm:flex-none sm:w-28"
                       min="0"
                       step="0.01"
                       disabled={!isGm}
                       title={!isGm ? t('form.priceLockedTitle') : t('form.priceOverrideTitle')}
                     />
 
-                    <button type="button" onClick={() => removeItem(index)} className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+                    <button type="button" onClick={() => removeItem(index)} className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0">
                       ✕
                     </button>
                   </div>

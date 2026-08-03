@@ -66,6 +66,12 @@ const iconPaths = {
       <path d="M4 18h16" />
     </>
   ),
+  x: (
+    <>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </>
+  ),
   plus: (
     <>
       <path d="M12 5v14" />
