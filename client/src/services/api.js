@@ -60,7 +60,7 @@ api.interceptors.response.use(
         return Promise.reject(new Error('Session expired. Please log in again.'));
       }
     }
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !original?.url?.includes('/auth/login') && !original?.url?.includes('/auth/change-password')) {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('activeStoreId');
       window.location.href = '/login';
