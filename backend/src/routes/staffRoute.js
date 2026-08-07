@@ -44,17 +44,6 @@ router.post('/', verifyToken, resolveStoreScope, authorizeGm(), async (req, res,
       createdBy: req.user.userId,
     });
 
-    await sendEmail({
-      to: staff.email,
-      subject: 'Your Stacey POS account has been created',
-      html: `
-        <p>Hello ${fullName},</p>
-        <p>An account has been created for you on Stacey POS with the role of <b>${role.replace('_', ' ')}</b>.</p>
-        <p><b>Email:</b> ${staff.email}<br/><b>Temporary password:</b> ${generatedPassword}</p>
-        <p>Please log in and change your password immediately.</p>
-      `,
-    });
-
     res.status(201).json({
       success: true,
       message: 'Staff created. Login details have been emailed to them.',
@@ -66,6 +55,18 @@ router.post('/', verifyToken, resolveStoreScope, authorizeGm(), async (req, res,
         generatedPassword, // returned once so GM can hand it over manually if email fails
       },
     });
+
+    // Fire-and-forget: don't block the response on the email provider.
+    sendEmail({
+      to: staff.email,
+      subject: 'Your Stacey POS account has been created',
+      html: `
+        <p>Hello ${fullName},</p>
+        <p>An account has been created for you on Stacey POS with the role of <b>${role.replace('_', ' ')}</b>.</p>
+        <p><b>Email:</b> ${staff.email}<br/><b>Temporary password:</b> ${generatedPassword}</p>
+        <p>Please log in and change your password immediately.</p>
+      `,
+    }).catch((error) => console.error('❌ Failed to send staff creation email:', error.message));
   } catch (error) {
     next(error);
   }
@@ -113,13 +114,14 @@ router.post('/:userId/reset-password', verifyToken, resolveStoreScope, authorize
     staff.mustChangePassword = true;
     await staff.save();
 
-    await sendEmail({
+    res.json({ success: true, message: 'Password reset and emailed to staff member', data: { generatedPassword } });
+
+    // Fire-and-forget: don't block the response on the email provider.
+    sendEmail({
       to: staff.email,
       subject: 'Your Stacey POS password has been reset',
       html: `<p>Your new temporary password is: <b>${generatedPassword}</b>. Please log in and change it immediately.</p>`,
-    });
-
-    res.json({ success: true, message: 'Password reset and emailed to staff member', data: { generatedPassword } });
+    }).catch((error) => console.error('❌ Failed to send password reset email:', error.message));
   } catch (error) {
     next(error);
   }
