@@ -15,24 +15,6 @@ const {
   Notification,
 } = require('../src/models/index.js');
 
-/**
- * Wipes all seeded/demo/test data and leaves you with:
- *   - Both stores (Stacey Fountain, Stacey Farm) - empty shells, no products
- *   - Exactly the 5 real accounts below, each reset to its FIXED default login
- *
- * Everything else (products, sales, expenses, customers, activity logs,
- * equipment, driver locations, returns, notifications, stock
- * movements, and every staff account not listed below) is deleted.
- *
- * Usage:
- *   node scripts/resetData.js
- *
- * If you want to wipe the stores too (start with literally nothing, not
- * even Fountain/Farm defined), pass --wipe-stores:
- *   node scripts/resetData.js --wipe-stores
- * In that case the script recreates both stores fresh and empty afterward,
- * since these accounts need a store to belong to.
- */
 
 const WIPE_STORES = process.argv.includes('--wipe-stores');
 
