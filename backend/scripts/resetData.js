@@ -18,11 +18,11 @@ const {
 /**
  * Wipes all seeded/demo/test data and leaves you with:
  *   - Both stores (Stacey Fountain, Stacey Farm) - empty shells, no products
- *   - Exactly ONE user: the owner, with a FIXED default login
+ *   - Exactly the 5 real accounts below, each reset to its FIXED default login
  *
  * Everything else (products, sales, expenses, customers, activity logs,
  * equipment, driver locations, returns, notifications, stock
- * movements, and every non-owner staff account) is deleted.
+ * movements, and every staff account not listed below) is deleted.
  *
  * Usage:
  *   node scripts/resetData.js
@@ -31,16 +31,20 @@ const {
  * even Fountain/Farm defined), pass --wipe-stores:
  *   node scripts/resetData.js --wipe-stores
  * In that case the script recreates both stores fresh and empty afterward,
- * since the owner account needs at least one store to belong to.
+ * since these accounts need a store to belong to.
  */
 
 const WIPE_STORES = process.argv.includes('--wipe-stores');
 
-// ============ FIXED OWNER CREDENTIALS ============
-// Change these to whatever you actually want as your permanent default login.
-const OWNER_EMAIL = 'admin@vostaglobal.org';
-const OWNER_PASSWORD = 'SecuredLink';
-const OWNER_FULL_NAME = 'Owner';
+// ============ FIXED ACCOUNTS (real staff - preserved across every reset) ============
+// Change these to whatever you actually want as your permanent default logins.
+const FIXED_ACCOUNTS = [
+  { email: 'admin@vostaglobal.org', password: 'SecuredLink', fullName: 'Super Admin', role: 'owner', store: 'both' },
+  { email: 'manager@staceyfountains.com', password: 'ManagerMail@1', fullName: 'Stacey Fountain Manager', role: 'manager', store: 'fountain' },
+  { email: 'accountant@staceyfountains.com', password: 'AccountantMail@1', fullName: 'Stacey Fountain Accountant', role: 'accountant', store: 'fountain' },
+  { email: 'manager@staceyfarms.com.ng', password: 'ManagerMail@1', fullName: 'Stacey Farm Manager', role: 'manager', store: 'farm' },
+  { email: 'accountant@staceyfarms.com.ng', password: 'AccountantMail@1', fullName: 'Stacey Farm Accountant', role: 'accountant', store: 'farm' },
+];
 
 async function resetData() {
   try {
@@ -80,12 +84,13 @@ async function resetData() {
       console.log(`   🗑️  ${labels[i]}: ${result.deletedCount} removed`);
     });
 
-    // ============ WIPE ALL NON-OWNER USERS ============
+    // ============ WIPE ALL STAFF EXCEPT THE FIXED ACCOUNTS ============
+    const fixedEmails = FIXED_ACCOUNTS.map((a) => a.email.toLowerCase());
     const staffWipe = await User.deleteMany({
-      email: { $ne: OWNER_EMAIL.toLowerCase() },
+      email: { $nin: fixedEmails },
     });
     console.log(
-      `   🗑️  Staff accounts: ${staffWipe.deletedCount} removed (owner preserved)`,
+      `   🗑️  Staff accounts: ${staffWipe.deletedCount} removed (${fixedEmails.length} fixed accounts preserved)`,
     );
 
     // ============ STORES ============
@@ -143,32 +148,36 @@ async function resetData() {
       }
     }
 
-    // ============ OWNER ACCOUNT (create fresh, or reset if it survived) ============
-    let owner = await User.findOne({ email: OWNER_EMAIL.toLowerCase() });
+    // ============ FIXED ACCOUNTS (create fresh, or reset if they survived) ============
+    for (const acct of FIXED_ACCOUNTS) {
+      const storeId = acct.store === 'farm' ? farmStore._id : fountainStore._id;
+      const accessibleStoreIds = acct.store === 'both' ? [fountainStore._id, farmStore._id] : undefined;
 
-    if (owner) {
-      // Force the password back to the known default and make sure it's
-      // active and has full store access, in case anything drifted.
-      owner.password_hash = OWNER_PASSWORD; // re-hashed by the pre-save hook
-      owner.role = 'owner';
-      owner.isActive = true;
-      owner.mustChangePassword = false;
-      owner.accessibleStoreIds = [fountainStore._id, farmStore._id];
-      owner.storeId = fountainStore._id;
-      await owner.save();
-      console.log(
-        `   ↺  Owner account reset to default password: ${OWNER_EMAIL}`,
-      );
-    } else {
-      owner = await User.create({
-        email: OWNER_EMAIL.toLowerCase(),
-        password_hash: OWNER_PASSWORD,
-        fullName: OWNER_FULL_NAME,
-        role: 'owner',
-        storeId: fountainStore._id,
-        accessibleStoreIds: [fountainStore._id, farmStore._id],
-      });
-      console.log(`   ✅ Owner account created: ${OWNER_EMAIL}`);
+      let user = await User.findOne({ email: acct.email.toLowerCase() });
+
+      if (user) {
+        // Force the password back to the known default and make sure it's
+        // active and correctly scoped, in case anything drifted.
+        user.password_hash = acct.password; // re-hashed by the pre-save hook
+        user.fullName = acct.fullName;
+        user.role = acct.role;
+        user.isActive = true;
+        user.mustChangePassword = false;
+        user.storeId = storeId;
+        if (accessibleStoreIds) user.accessibleStoreIds = accessibleStoreIds;
+        await user.save();
+        console.log(`   ↺  ${acct.role} account reset to default password: ${acct.email}`);
+      } else {
+        await User.create({
+          email: acct.email.toLowerCase(),
+          password_hash: acct.password,
+          fullName: acct.fullName,
+          role: acct.role,
+          storeId,
+          ...(accessibleStoreIds && { accessibleStoreIds }),
+        });
+        console.log(`   ✅ ${acct.role} account created: ${acct.email}`);
+      }
     }
 
     console.log(`
@@ -176,12 +185,11 @@ async function resetData() {
 ║ ✅ RESET COMPLETE                                   ║
 ╚════════════════════════════════════════════════════╝
 
-🔐 Default login (unchanged, always available):
-   Email:    ${OWNER_EMAIL}
-   Password: ${OWNER_PASSWORD}
+🔐 Default logins (unchanged, always available):
+${FIXED_ACCOUNTS.map((a) => `   ${a.role.padEnd(11)} ${a.email} / ${a.password}`).join('\n')}
 
-Everything else - products, sales, staff, expenses, customers, equipment,
-driver locations, returns, notifications - has been cleared.
+Everything else - products, sales, other staff, expenses, customers,
+equipment, driver locations, returns, notifications - has been cleared.
 ${WIPE_STORES ? 'Stores were wiped and recreated empty.' : 'Stores were left intact (or created fresh if missing).'}
     `);
 

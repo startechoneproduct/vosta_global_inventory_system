@@ -38,6 +38,7 @@ function menuItemsForRole(role, storeType, t) {
   if (role === 'manager' || role === 'supervisor') {
     const items = [
       { path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+      { path: '/products', label: t('nav.products'), icon: 'product' },
       { path: '/sales', label: t('nav.sales'), icon: 'sales' },
       { path: '/returns', label: t('nav.returns'), icon: 'returns' },
       { path: '/expenses', label: t('nav.expenses'), icon: 'expenses' },
@@ -45,9 +46,10 @@ function menuItemsForRole(role, storeType, t) {
       { path: '/activity-log', label: t('nav.myActivityLog'), icon: 'activityLog' },
     ];
     if (!isFarm) {
-      items.splice(4, 0, { path: '/production', label: t('nav.production'), icon: 'inventory' });
+      items.splice(5, 0, { path: '/production', label: t('nav.production'), icon: 'inventory' });
     } else {
-      items.splice(4, 0, { path: '/vaccination', label: t('nav.vaccination'), icon: 'vaccination' });
+      items.splice(5, 0, { path: '/vaccination', label: t('nav.vaccination'), icon: 'vaccination' });
+      items.push({ path: '/customers', label: t('nav.customers'), icon: 'customers' });
     }
     return items;
   }
@@ -55,14 +57,16 @@ function menuItemsForRole(role, storeType, t) {
   if (role === 'accountant') {
     const items = [
       { path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' },
+      { path: '/products', label: t('nav.products'), icon: 'product' },
       { path: '/sales', label: t('nav.sales'), icon: 'sales' },
       { path: '/inventory', label: t('nav.inventory'), icon: 'inventory' },
       { path: '/expenses', label: t('nav.expenses'), icon: 'expenses' },
     ];
     if (!isFarm) {
-      items.splice(3, 0, { path: '/production', label: t('nav.production'), icon: 'inventory' });
+      items.splice(4, 0, { path: '/production', label: t('nav.production'), icon: 'inventory' });
     } else {
-      items.splice(3, 0, { path: '/vaccination', label: t('nav.vaccination'), icon: 'vaccination' });
+      items.splice(4, 0, { path: '/vaccination', label: t('nav.vaccination'), icon: 'vaccination' });
+      items.push({ path: '/customers', label: t('nav.customers'), icon: 'customers' });
     }
     return items;
   }

@@ -1,6 +1,24 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { User, Store, Product, Equipment, RawMaterial } = require('../src/models');
+const {
+  User,
+  Store,
+  Product,
+  Sale,
+  StockMovement,
+  Expense,
+  Customer,
+  ActivityLog,
+  Equipment,
+  DriverLocation,
+  Return,
+  Notification,
+  Damage,
+  RawMaterial,
+  RawMaterialMovement,
+  ProductionBatch,
+  VaccinationRecord,
+} = require('../src/models');
 
 const STORES = [
   {
@@ -19,226 +37,96 @@ const STORES = [
   },
 ];
 
-const PRODUCTS_FOUNTAIN = [
-  {
-    sku: 'SKU-SF-001',
-    name: 'Bottled Water 50cl Pack',
-    description: 'Premium bottled water in 50cl packs',
-    unitName: 'pack',
-    currentStock: 150,
-    minThreshold: 30,
-    pricePerUnit: 50000,
-  },
-  {
-    sku: 'SKU-SF-002',
-    name: 'Bottled Water 75cl Pack',
-    description: 'Premium bottled water in 75cl packs',
-    unitName: 'pack',
-    currentStock: 120,
-    minThreshold: 20,
-    pricePerUnit: 75000,
-  },
-  {
-    sku: 'SKU-SF-003',
-    name: 'Sachet Water Bag',
-    description: 'Sachet water bags (bulk)',
-    unitName: 'bag',
-    currentStock: 250,
-    minThreshold: 50,
-    pricePerUnit: 30000,
-  },
-];
-
-const RAW_MATERIALS_FOUNTAIN = [
-  {
-    name: 'Preform 21kg Bag',
-    materialKey: 'preform_21kg',
-    productLine: 'bottled',
-    purchaseUnitName: 'bag',
-    piecesPerPurchaseUnit: 550,
-    currentStockPurchaseUnits: 40,
-    minThresholdPurchaseUnits: 8,
-  },
-  {
-    name: 'Preform 19kg Bag',
-    materialKey: 'preform_19kg',
-    productLine: 'bottled',
-    purchaseUnitName: 'bag',
-    piecesPerPurchaseUnit: 1040,
-    currentStockPurchaseUnits: 25,
-    minThresholdPurchaseUnits: 5,
-  },
-  {
-    name: 'Caps',
-    materialKey: 'caps',
-    productLine: 'bottled',
-    purchaseUnitName: 'bag',
-    piecesPerPurchaseUnit: 4000,
-    currentStockPurchaseUnits: 15,
-    minThresholdPurchaseUnits: 3,
-    notes: 'Piece count is approximate (~4000/bag) - adjust once confirmed with supplier.',
-  },
-  {
-    name: 'Labels',
-    materialKey: 'labels',
-    productLine: 'bottled',
-    purchaseUnitName: 'bundle',
-    piecesPerPurchaseUnit: 500,
-    currentStockPurchaseUnits: 60,
-    minThresholdPurchaseUnits: 10,
-  },
-  {
-    name: 'Nylon Roll',
-    materialKey: 'nylon_roll',
-    productLine: 'sachet',
-    purchaseUnitName: 'roll (15kg)',
-    piecesPerPurchaseUnit: 8000,
-    currentStockPurchaseUnits: 10,
-    minThresholdPurchaseUnits: 2,
-    notes: 'Default reference figure (~8000 sachets per 15kg roll, industry standard) - update once actual supplier yield is known.',
-  },
-];
-
-// Feed bags (layer/grower) are consumed inputs, not sellable output, and
-// are recorded as Expenses instead (see expensesRoute.js's FARM_CATEGORIES).
-// Farm products are limited to what the farm actually produces/sells: eggs
-// (by crate or by unit), chicken droppings (byproduct), and live birds.
-const PRODUCTS_FARM = [
-  {
-    sku: 'SKU-SFM-001',
-    name: 'Eggs (Per Crate)',
-    description: 'Fresh farm eggs, sold per crate',
-    unitName: 'crate',
-    currentStock: 60,
-    minThreshold: 10,
-    pricePerUnit: 500000,
-  },
-  {
-    sku: 'SKU-SFM-005',
-    name: 'Eggs (Per Unit)',
-    description: 'Fresh farm eggs, sold individually',
-    unitName: 'unit',
-    currentStock: 200,
-    minThreshold: 30,
-    pricePerUnit: 20000,
-  },
-  {
-    sku: 'SKU-SFM-004',
-    name: 'Chicken Droppings (100kg)',
-    description: 'Aged chicken manure, 100kg per bag',
-    unitName: 'bag',
-    currentStock: 25,
-    minThreshold: 5,
-    pricePerUnit: 300000,
-  },
-];
-
-const FOUNTAIN_EQUIPMENT = [
-  {
-    name: 'Filling Machine A',
-    type: 'Filling Machine',
-    serviceIntervalDays: 60,
-    lastServiceDate: new Date(),
-  },
-  {
-    name: 'Sealing Machine',
-    type: 'Sealing Machine',
-    serviceIntervalDays: 45,
-    lastServiceDate: new Date(),
-  },
-  {
-    name: 'Generator Set',
-    type: 'Generator',
-    serviceIntervalDays: 30,
-    lastServiceDate: new Date(),
-  },
-];
-
 async function seed() {
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('\n📦 Starting database seed...\n');
+    console.log('\n📦 Starting database seed (real users only)...\n');
 
-    await User.deleteMany({});
-    await Store.deleteMany({});
-    await Product.deleteMany({});
-    await Equipment.deleteMany({});
-    await RawMaterial.deleteMany({});
+    await Promise.all([
+      User.deleteMany({}),
+      Store.deleteMany({}),
+      Product.deleteMany({}),
+      Sale.deleteMany({}),
+      StockMovement.deleteMany({}),
+      Expense.deleteMany({}),
+      Customer.deleteMany({}),
+      ActivityLog.deleteMany({}),
+      Equipment.deleteMany({}),
+      DriverLocation.deleteMany({}),
+      Return.deleteMany({}),
+      Notification.deleteMany({}),
+      Damage.deleteMany({}),
+      RawMaterial.deleteMany({}),
+      RawMaterialMovement.deleteMany({}),
+      ProductionBatch.deleteMany({}),
+      VaccinationRecord.deleteMany({}),
+    ]);
+    console.log('   🗑️  All existing data cleared');
 
     const fountainStore = await Store.create(STORES[0]);
     const farmStore = await Store.create(STORES[1]);
     console.log(`   ✅ Stacey Fountain: ${fountainStore._id}`);
     console.log(`   ✅ Stacey Farm: ${farmStore._id}`);
 
-    // Owner has global access (empty accessibleStoreIds = unrestricted)
+    // Owner has global access (accessibleStoreIds spans both stores).
     const users = await User.create([
       {
-        email:'owner@stacey.com',
+        email: 'admin@vostaglobal.org',
         password_hash: 'SecuredLink',
-        fullName: 'Owner User',
-        phone: '+234 801 123 4567',
+        fullName: 'Super Admin',
         role: 'owner',
         storeId: fountainStore._id,
         accessibleStoreIds: [fountainStore._id, farmStore._id],
       },
       {
-        email: 'manager@fountain.com',
-        password_hash: 'Password@123',
-        fullName: 'Fountain Manager',
-        phone: '+234 802 234 5678',
+        email: 'manager@staceyfountains.com',
+        password_hash: 'ManagerMail@1',
+        fullName: 'Stacey Fountain Manager',
         role: 'manager',
         storeId: fountainStore._id,
       },
       {
-        email: 'accountant@fountain.com',
-        password_hash: 'Password@123',
-        fullName: 'Fountain Accountant',
-        phone: '+234 803 345 6789',
+        email: 'accountant@staceyfountains.com',
+        password_hash: 'AccountantMail@1',
+        fullName: 'Stacey Fountain Accountant',
         role: 'accountant',
         storeId: fountainStore._id,
       },
       {
-        email: 'driver@fountain.com',
-        password_hash: 'Password@123',
-        fullName: 'Fountain Driver',
-        phone: '+234 804 456 7890',
-        role: 'driver',
-        storeId: fountainStore._id,
+        email: 'manager@staceyfarms.com.ng',
+        password_hash: 'ManagerMail@1',
+        fullName: 'Stacey Farm Manager',
+        role: 'manager',
+        storeId: farmStore._id,
+      },
+      {
+        email: 'accountant@staceyfarms.com.ng',
+        password_hash: 'AccountantMail@1',
+        fullName: 'Stacey Farm Accountant',
+        role: 'accountant',
+        storeId: farmStore._id,
       },
     ]);
 
-    console.log(
-      `   ✅ Created ${users.length} Stacey Fountain users (owner, manager, accountant, driver)`,
-    );
-
-    await Product.create(
-      PRODUCTS_FOUNTAIN.map((p) => ({ ...p, storeId: fountainStore._id })),
-    );
-    await Product.create(
-      PRODUCTS_FARM.map((p) => ({ ...p, storeId: farmStore._id })),
-    );
-    await Equipment.create(
-      FOUNTAIN_EQUIPMENT.map((e) => ({ ...e, storeId: fountainStore._id })),
-    );
-
-    await RawMaterial.create(
-      RAW_MATERIALS_FOUNTAIN.map((m) => ({ ...m, storeId: fountainStore._id })),
-    );
-    console.log(`   ✅ Seeded ${RAW_MATERIALS_FOUNTAIN.length} raw materials for Stacey Fountain`);
+    console.log(`   ✅ Created ${users.length} real user accounts`);
 
     console.log(`
 ╔════════════════════════════════════════╗
 ║ ✅ DATABASE SEED SUCCESSFUL           ║
 ╚════════════════════════════════════════╝
 
-🔐 Demo Login Credentials:
-   Owner (switches stores):  owner@stacey.com / SecuredLink
-   Fountain Manager:         manager@fountain.com / Password@123
-   Fountain Accountant:      accountant@fountain.com / Password@123
-   Fountain Driver:          driver@fountain.com / Password@123
+🔐 Login Credentials:
+   Super Admin:            admin@vostaglobal.org / SecuredLink
+   Fountain Manager:       manager@staceyfountains.com / ManagerMail@1
+   Fountain Accountant:    accountant@staceyfountains.com / AccountantMail@1
+   Farm Manager:           manager@staceyfarms.com.ng / ManagerMail@1
+   Farm Accountant:        accountant@staceyfarms.com.ng / AccountantMail@1
+
+Both stores were created empty - no demo products, equipment, or raw
+materials. Everything else in the database has been cleared.
     `);
 
     process.exit(0);
@@ -249,4 +137,3 @@ async function seed() {
 }
 
 seed();
-

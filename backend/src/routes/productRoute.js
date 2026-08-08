@@ -60,8 +60,8 @@ router.get('/:productId', verifyToken, resolveStoreScope, async (req, res, next)
   }
 });
 
-// ============ CREATE PRODUCT (GM/Accountant - stock-in scope) ============
-router.post('/', verifyToken, resolveStoreScope, authorize('owner', 'general_manager', 'accountant'), async (req, res, next) => {
+// ============ CREATE PRODUCT (GM/Manager/Accountant - stock-in scope) ============
+router.post('/', verifyToken, resolveStoreScope, authorize('owner', 'general_manager', 'manager', 'accountant'), async (req, res, next) => {
   try {
     // NEW: category (e.g. "layer"/"broiler" for Farm) and costPerUnit
     // (what this unit actually costs you) added alongside the existing fields.
@@ -106,7 +106,7 @@ router.post('/', verifyToken, resolveStoreScope, authorize('owner', 'general_man
 // Cost price lives here (not the audit-locked price endpoint below) because
 // tracking real cost is an accounting task, not a customer-facing price
 // change - the Accountant role should be able to keep this current.
-router.put('/:productId', verifyToken, resolveStoreScope, authorize('owner', 'general_manager', 'accountant'), async (req, res, next) => {
+router.put('/:productId', verifyToken, resolveStoreScope, authorize('owner', 'general_manager', 'manager', 'accountant'), async (req, res, next) => {
   try {
     const { name, description, unitName, category, minThreshold, costPerUnit, isActive } = req.body;
 
