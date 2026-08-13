@@ -7,8 +7,8 @@ const router = express.Router();
 
 // Access tokens are intentionally short-lived for security; the frontend
 // silently renews them via POST /auth/refresh (see api.js's response
-// interceptor) so this doesn't force users to re-login every 3 minutes.
-const ACCESS_TOKEN_EXPIRE_SECONDS = Number(process.env.JWT_EXPIRE_SECONDS) || 180;
+// interceptor) so this doesn't force users to re-login every 5 minutes.
+const ACCESS_TOKEN_EXPIRE_SECONDS = Number(process.env.JWT_EXPIRE_SECONDS) || 300;
 
 function signAccessToken(user) {
   return jwt.sign(

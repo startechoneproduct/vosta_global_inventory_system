@@ -5,7 +5,6 @@ const { notifyStoreLeadership } = require('../utils/notify.js');
 
 const router = express.Router();
 
-const canRecordProduction = authorize('manager', 'accountant');
 const canEditMaterialConfig = authorize('owner', 'general_manager', 'manager', 'accountant');
 
 async function requireFountainStore(req, res, next) {
@@ -39,6 +38,76 @@ router.get('/', verifyToken, resolveStoreScope, requireFountainStore, async (req
   }
 });
 
+// ============ CREATE RAW MATERIAL ============
+router.post('/', verifyToken, resolveStoreScope, requireFountainStore, canEditMaterialConfig, async (req, res, next) => {
+  try {
+    const {
+      name,
+      productLine,
+      purchaseUnitName,
+      piecesPerPurchaseUnit,
+      currentStockPurchaseUnits = 0,
+      minThresholdPurchaseUnits = 0,
+      costPerPurchaseUnit = 0,
+      notes,
+    } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'name is required' });
+    }
+    if (!['bottled', 'sachet'].includes(productLine)) {
+      return res.status(400).json({ success: false, message: 'productLine must be "bottled" or "sachet"' });
+    }
+    if (!purchaseUnitName || !purchaseUnitName.trim()) {
+      return res.status(400).json({ success: false, message: 'purchaseUnitName is required' });
+    }
+    if (!piecesPerPurchaseUnit || piecesPerPurchaseUnit <= 0) {
+      return res.status(400).json({ success: false, message: 'piecesPerPurchaseUnit must be greater than 0' });
+    }
+    if (currentStockPurchaseUnits < 0 || minThresholdPurchaseUnits < 0 || costPerPurchaseUnit < 0) {
+      return res.status(400).json({ success: false, message: 'Stock, threshold, and cost cannot be negative' });
+    }
+
+    const materialKey = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    if (!materialKey) {
+      return res.status(400).json({ success: false, message: 'name must contain at least one letter or number' });
+    }
+
+    const existing = await RawMaterial.findOne({ storeId: req.storeId, materialKey });
+    if (existing) {
+      return res.status(400).json({ success: false, message: `A raw material named "${existing.name}" already exists` });
+    }
+
+    const material = await RawMaterial.create({
+      storeId: req.storeId,
+      name: name.trim(),
+      materialKey,
+      productLine,
+      purchaseUnitName: purchaseUnitName.trim(),
+      piecesPerPurchaseUnit,
+      currentStockPurchaseUnits,
+      minThresholdPurchaseUnits,
+      costPerPurchaseUnit,
+      notes,
+    });
+
+    if (currentStockPurchaseUnits > 0) {
+      await RawMaterialMovement.create({
+        storeId: req.storeId,
+        rawMaterialId: material._id,
+        type: 'adjustment',
+        quantityPurchaseUnits: currentStockPurchaseUnits,
+        recordedBy: req.user.userId,
+        notes: 'Initial stock recorded on material creation',
+      });
+    }
+
+    res.status(201).json({ success: true, message: 'Raw material created', data: withPieces(material) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ============ EDIT MATERIAL CONFIG ============
 router.patch('/:id', verifyToken, resolveStoreScope, requireFountainStore, canEditMaterialConfig, async (req, res, next) => {
   try {
@@ -65,8 +134,8 @@ router.patch('/:id', verifyToken, resolveStoreScope, requireFountainStore, canEd
   }
 });
 
-// ============ RESTOCK ============
-router.post('/restock', verifyToken, resolveStoreScope, requireFountainStore, canRecordProduction, async (req, res, next) => {
+// ============ RESTOCK / UPDATE STOCK QUANTITY ============
+router.post('/restock', verifyToken, resolveStoreScope, requireFountainStore, canEditMaterialConfig, async (req, res, next) => {
   try {
     const { rawMaterialId, quantityPurchaseUnits, notes } = req.body;
 

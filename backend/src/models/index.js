@@ -205,6 +205,9 @@ const storeSchema = new mongoose.Schema(
         sachetBagsPerToken: { type: Number, default: 2 },
         tokensPerFreePack: { type: Number, default: 5 },
       },
+      // Store-specific expense categories added on top of the predefined
+      // fountain/farm lists (see expensesRoute.js categoriesForStoreType).
+      customExpenseCategories: { type: [String], default: [] },
     },
     isActive: {
       type: Boolean,
@@ -383,15 +386,14 @@ stockMovementSchema.index({ storeId: 1, productId: 1, timestamp: -1 });
 const expenseSchema = new mongoose.Schema(
   {
     storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+    // Not an enum: owner/GM/manager/accountant can add custom categories per
+    // store (see expensesRoute.js categoriesForStoreType +
+    // Store.config.customExpenseCategories), so validation happens at the
+    // route layer against the predefined + custom list, not here.
     category: {
       type: String,
-      enum: [
-        // Stacey Fountain categories
-        'Fuel', 'Caps', 'Bottle Preforms', 'Nylon', 'Filters', 'AEDC', 'Labels', 'Salaries', 'Maintenance', 'Misc',
-        // Stacey Farm categories
-        'Layer Mash', 'Grower Mash', 'Layer Feed Bag', 'Grower Feed Bag', 'Feeds', 'Vaccination', 'Medication', 'Day-Old Chicks',
-      ],
       required: true,
+      trim: true,
     },
     amount: { type: Number, required: true },
     description: String,
@@ -591,10 +593,13 @@ const rawMaterialSchema = new mongoose.Schema(
   {
     storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
     name: { type: String, required: true, trim: true },
+    // Not an enum: owner/GM/manager/accountant can add raw material types
+    // beyond the original bottled-water lineup (preform/caps/labels/nylon),
+    // so this is a slug derived from `name` rather than a fixed list.
     materialKey: {
       type: String,
-      enum: ['preform_21kg', 'preform_19kg', 'caps', 'labels', 'nylon_roll'],
       required: true,
+      trim: true,
     },
     productLine: { type: String, enum: ['bottled', 'sachet'], required: true },
     purchaseUnitName: { type: String, required: true, trim: true },

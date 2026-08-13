@@ -18,6 +18,23 @@
     "qtyPlaceholder": "Qty",
     "restockButton": "Restock"
   },
+  "addMaterialForm": {
+    "addButton": "Add Raw Material",
+    "cancelButton": "Cancel",
+    "selectRequiredFields": "Enter a name, product line, purchase unit, and pieces per unit",
+    "materialAdded": "Raw material added",
+    "namePlaceholder": "Material name",
+    "selectProductLine": "Select Product Line",
+    "bottled": "Bottled",
+    "sachet": "Sachet",
+    "purchaseUnitPlaceholder": "Purchase unit (e.g. bag, roll)",
+    "piecesPerUnitPlaceholder": "Pieces per unit",
+    "initialStockPlaceholder": "Initial stock (units)",
+    "minThresholdPlaceholder": "Low stock threshold",
+    "costPerUnitPlaceholder": "Cost per unit",
+    "notesPlaceholder": "Notes (optional)",
+    "submitButton": "Add Material"
+  },
   "bottledForm": {
     "heading": "Record Bottled Water Batch",
     "selectBottleSize": "Select Bottle Size",

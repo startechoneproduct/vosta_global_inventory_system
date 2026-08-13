@@ -21,7 +21,7 @@ function roundDisplay(n) {
 export default function Production({ user }) {
   const { t } = useTranslation('production');
   const { activeStore } = useStore();
-  const canRecord = user?.role === 'manager' || user?.role === 'accountant';
+  const canRecord = ['owner', 'general_manager', 'manager', 'accountant'].includes(user?.role);
 
   const [materials, setMaterials] = useState([]);
   const [products, setProducts] = useState([]);
@@ -29,10 +29,21 @@ export default function Production({ user }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAddMaterial, setShowAddMaterial] = useState(false);
 
   const [restockQty, setRestockQty] = useState({});
   const [bottledForm, setBottledForm] = useState({ finishedProductId: '', preformMaterialId: '', bottlesProduced: '', preformLeakageCount: '', notes: '' });
   const [sachetForm, setSachetForm] = useState({ finishedProductId: '', sachetsProduced: '', sachetLeakageCount: '', notes: '' });
+  const [newMaterialForm, setNewMaterialForm] = useState({
+    name: '',
+    productLine: '',
+    purchaseUnitName: '',
+    piecesPerPurchaseUnit: '',
+    currentStockPurchaseUnits: '',
+    minThresholdPurchaseUnits: '',
+    costPerPurchaseUnit: '',
+    notes: '',
+  });
 
   const isFountain = activeStore?.type === 'fountain';
 
@@ -89,6 +100,37 @@ export default function Production({ user }) {
       await api.post('/raw-materials/restock', { rawMaterialId: materialId, quantityPurchaseUnits: quantity });
       setSuccess(t('restockRecorded'));
       setRestockQty((prev) => ({ ...prev, [materialId]: '' }));
+      refreshAll();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMaterialSubmit = async (e) => {
+    e.preventDefault();
+    if (!newMaterialForm.name || !newMaterialForm.productLine || !newMaterialForm.purchaseUnitName || !newMaterialForm.piecesPerPurchaseUnit) {
+      setError(t('addMaterialForm.selectRequiredFields'));
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      await api.post('/raw-materials', {
+        name: newMaterialForm.name,
+        productLine: newMaterialForm.productLine,
+        purchaseUnitName: newMaterialForm.purchaseUnitName,
+        piecesPerPurchaseUnit: Number(newMaterialForm.piecesPerPurchaseUnit),
+        currentStockPurchaseUnits: Number(newMaterialForm.currentStockPurchaseUnits) || 0,
+        minThresholdPurchaseUnits: Number(newMaterialForm.minThresholdPurchaseUnits) || 0,
+        costPerPurchaseUnit: Number(newMaterialForm.costPerPurchaseUnit) || 0,
+        notes: newMaterialForm.notes,
+      });
+      setSuccess(t('addMaterialForm.materialAdded'));
+      setNewMaterialForm({ name: '', productLine: '', purchaseUnitName: '', piecesPerPurchaseUnit: '', currentStockPurchaseUnits: '', minThresholdPurchaseUnits: '', costPerPurchaseUnit: '', notes: '' });
+      setShowAddMaterial(false);
       refreshAll();
     } catch (err) {
       setError(err.message);
@@ -173,9 +215,91 @@ export default function Production({ user }) {
       {success && <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">{success}</div>}
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">{t('rawMaterials.heading')}</h2>
+          {canRecord && (
+            <button
+              type="button"
+              className="btn-secondary text-sm px-3"
+              onClick={() => setShowAddMaterial((prev) => !prev)}
+            >
+              {showAddMaterial ? t('addMaterialForm.cancelButton') : t('addMaterialForm.addButton')}
+            </button>
+          )}
         </div>
+        {canRecord && showAddMaterial && (
+          <form onSubmit={handleAddMaterialSubmit} className="px-6 py-4 border-b border-gray-200 bg-gray-50 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <input
+              type="text"
+              className="input-field"
+              placeholder={t('addMaterialForm.namePlaceholder')}
+              value={newMaterialForm.name}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, name: e.target.value })}
+            />
+            <select
+              className="input-field"
+              value={newMaterialForm.productLine}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, productLine: e.target.value })}
+            >
+              <option value="">{t('addMaterialForm.selectProductLine')}</option>
+              <option value="bottled">{t('addMaterialForm.bottled')}</option>
+              <option value="sachet">{t('addMaterialForm.sachet')}</option>
+            </select>
+            <input
+              type="text"
+              className="input-field"
+              placeholder={t('addMaterialForm.purchaseUnitPlaceholder')}
+              value={newMaterialForm.purchaseUnitName}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, purchaseUnitName: e.target.value })}
+            />
+            <input
+              type="number"
+              min="0.0001"
+              step="any"
+              className="input-field"
+              placeholder={t('addMaterialForm.piecesPerUnitPlaceholder')}
+              value={newMaterialForm.piecesPerPurchaseUnit}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, piecesPerPurchaseUnit: e.target.value })}
+            />
+            <input
+              type="number"
+              min="0"
+              step="any"
+              className="input-field"
+              placeholder={t('addMaterialForm.initialStockPlaceholder')}
+              value={newMaterialForm.currentStockPurchaseUnits}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, currentStockPurchaseUnits: e.target.value })}
+            />
+            <input
+              type="number"
+              min="0"
+              step="any"
+              className="input-field"
+              placeholder={t('addMaterialForm.minThresholdPlaceholder')}
+              value={newMaterialForm.minThresholdPurchaseUnits}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, minThresholdPurchaseUnits: e.target.value })}
+            />
+            <input
+              type="number"
+              min="0"
+              step="any"
+              className="input-field"
+              placeholder={t('addMaterialForm.costPerUnitPlaceholder')}
+              value={newMaterialForm.costPerPurchaseUnit}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, costPerPurchaseUnit: e.target.value })}
+            />
+            <input
+              type="text"
+              className="input-field"
+              placeholder={t('addMaterialForm.notesPlaceholder')}
+              value={newMaterialForm.notes}
+              onChange={(e) => setNewMaterialForm({ ...newMaterialForm, notes: e.target.value })}
+            />
+            <button type="submit" disabled={loading} className="btn-primary sm:col-span-2 lg:col-span-4">
+              {t('addMaterialForm.submitButton')}
+            </button>
+          </form>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">

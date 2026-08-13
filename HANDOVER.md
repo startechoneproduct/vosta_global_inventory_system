@@ -45,8 +45,8 @@ Both stores share the same codebase, database, and login system — the UI and a
 ## 3. Architecture Basics
 
 ### Authentication
-- Login issues a short-lived **access token** (default 180 seconds, `JWT_EXPIRE_SECONDS`) and a 7-day **refresh token**, both set as httpOnly cookies (and the access token is also returned in the JSON body for the `Authorization: Bearer` header path).
-- The frontend (`client/src/services/api.js`) transparently calls `POST /api/auth/refresh` when a request 401s, so users aren't forced to re-login every 3 minutes.
+- Login issues a short-lived **access token** (default 300 seconds, `JWT_EXPIRE_SECONDS`) and a 7-day **refresh token**, both set as httpOnly cookies (and the access token is also returned in the JSON body for the `Authorization: Bearer` header path).
+- The frontend (`client/src/services/api.js`) transparently calls `POST /api/auth/refresh` when a request 401s, so users aren't forced to re-login every 5 minutes.
 - Failed logins lock the account for 15 minutes after 5 attempts (`User.incLoginAttempts`).
 - New staff accounts are created with a **generated temporary password** and `mustChangePassword: true` — the frontend blocks all navigation and forces a password change on first login (`ChangePassword.jsx`, `App.jsx`'s `ProtectedRoute`).
 
@@ -202,7 +202,7 @@ In production, the server self-pings its own `/keep-alive` endpoint every 14 min
 |---|---|
 | `MONGODB_URI` | MongoDB connection string |
 | `JWT_SECRET` | Signs access & refresh tokens |
-| `JWT_EXPIRE_SECONDS` | Access token lifetime (default 180s) |
+| `JWT_EXPIRE_SECONDS` | Access token lifetime (default 300s) |
 | `REFRESH_TOKEN_EXPIRE` | Refresh token lifetime (default `7d`) |
 | `BCRYPT_ROUNDS` | Password hashing cost (default 12) |
 | `NODE_ENV` | `development` / `production` |

@@ -18,6 +18,23 @@
     "qtyPlaceholder": "Menge",
     "restockButton": "Nachfüllen"
   },
+  "addMaterialForm": {
+    "addButton": "Rohstoff hinzufügen",
+    "cancelButton": "Abbrechen",
+    "selectRequiredFields": "Geben Sie einen Namen, eine Produktlinie, eine Kaufeinheit und Stück pro Einheit ein",
+    "materialAdded": "Rohstoff hinzugefügt",
+    "namePlaceholder": "Materialname",
+    "selectProductLine": "Produktlinie auswählen",
+    "bottled": "Flaschenwasser",
+    "sachet": "Beutelwasser",
+    "purchaseUnitPlaceholder": "Kaufeinheit (z. B. Sack, Rolle)",
+    "piecesPerUnitPlaceholder": "Stück pro Einheit",
+    "initialStockPlaceholder": "Anfangsbestand (Einheiten)",
+    "minThresholdPlaceholder": "Schwelle für niedrigen Bestand",
+    "costPerUnitPlaceholder": "Kosten pro Einheit",
+    "notesPlaceholder": "Notizen (optional)",
+    "submitButton": "Material hinzufügen"
+  },
   "bottledForm": {
     "heading": "Flaschenwasser-Charge erfassen",
     "selectBottleSize": "Flaschengröße auswählen",

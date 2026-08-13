@@ -15,6 +15,13 @@ function categoriesForStoreType(storeType) {
   return storeType === 'farm' ? FARM_CATEGORIES : FOUNTAIN_CATEGORIES;
 }
 
+// Predefined categories plus any custom ones added for this specific store.
+function allCategoriesForStore(store) {
+  return [...categoriesForStoreType(store.type), ...(store.config?.customExpenseCategories || [])];
+}
+
+const canManageCategories = authorize('owner', 'general_manager', 'manager', 'accountant');
+
 // ============ CREATE EXPENSE ============
 router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
   try {
@@ -36,7 +43,7 @@ router.post('/', verifyToken, resolveStoreScope, async (req, res, next) => {
       });
     }
 
-    const allowedCategories = categoriesForStoreType(store.type);
+    const allowedCategories = allCategoriesForStore(store);
     if (!allowedCategories.includes(category)) {
       return res.status(400).json({
         success: false,
@@ -72,7 +79,33 @@ router.get('/categories', verifyToken, resolveStoreScope, async (req, res, next)
   try {
     const store = await Store.findById(req.storeId);
     if (!store) return res.status(404).json({ success: false, message: 'Store not found' });
-    res.json({ success: true, data: categoriesForStoreType(store.type) });
+    res.json({ success: true, data: allCategoriesForStore(store) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============ ADD A CUSTOM EXPENSE CATEGORY FOR THE ACTIVE STORE ============
+router.post('/categories', verifyToken, resolveStoreScope, canManageCategories, async (req, res, next) => {
+  try {
+    const { category } = req.body;
+    const trimmed = (category || '').trim();
+    if (!trimmed) {
+      return res.status(400).json({ success: false, message: 'category is required' });
+    }
+
+    const store = await Store.findById(req.storeId);
+    if (!store) return res.status(404).json({ success: false, message: 'Store not found' });
+
+    const existing = allCategoriesForStore(store);
+    if (existing.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
+      return res.status(400).json({ success: false, message: `"${trimmed}" already exists as an expense category` });
+    }
+
+    store.config.customExpenseCategories = [...(store.config.customExpenseCategories || []), trimmed];
+    await store.save();
+
+    res.status(201).json({ success: true, message: 'Category added', data: allCategoriesForStore(store) });
   } catch (error) {
     next(error);
   }

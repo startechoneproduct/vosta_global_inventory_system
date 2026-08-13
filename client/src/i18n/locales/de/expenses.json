@@ -9,6 +9,10 @@
   "form": {
     "category": "Kategorie",
     "selectCategory": "Kategorie auswählen",
+    "addNewCategory": "+ Kategorie hinzufügen",
+    "cancelNewCategory": "Abbrechen",
+    "newCategoryPlaceholder": "Name der neuen Kategorie",
+    "addCategoryButton": "Hinzufügen",
     "amount": "Betrag (₦)",
     "amountPlaceholder": "0,00",
     "description": "Beschreibung",
@@ -36,7 +40,8 @@
     "expenseRecordedStatus": "Ausgabe erfasst. Status: {{status}}",
     "expenseApproved": "Ausgabe genehmigt",
     "failedToLoadExpenses": "Ausgaben konnten nicht geladen werden",
-    "failedToLoadAnalytics": "Ausgabenanalyse konnte nicht geladen werden"
+    "failedToLoadAnalytics": "Ausgabenanalyse konnte nicht geladen werden",
+    "categoryAdded": "Kategorie hinzugefügt"
   },
   "overview": {
     "periods": {

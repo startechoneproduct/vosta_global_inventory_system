@@ -173,6 +173,7 @@ export default function Expenses({ user }) {
 
   const isGm = user?.role === 'owner' || user?.role === 'general_manager';
   const canApprove = ['owner', 'general_manager', 'manager'].includes(user?.role);
+  const canManageCategories = ['owner', 'general_manager', 'manager', 'accountant'].includes(user?.role);
 
   const [tab, setTab] = useState('record');
   const [expenses, setExpenses] = useState([]);
@@ -186,6 +187,9 @@ export default function Expenses({ user }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [addingCategory, setAddingCategory] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -241,6 +245,27 @@ export default function Expenses({ user }) {
     }
   };
 
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    const trimmed = newCategory.trim();
+    if (!trimmed) return;
+    setAddingCategory(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await api.post('/expenses/categories', { category: trimmed });
+      setCategories(response.data.data);
+      setForm((prev) => ({ ...prev, category: trimmed }));
+      setNewCategory('');
+      setShowAddCategory(false);
+      setSuccess(t('messages.categoryAdded'));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAddingCategory(false);
+    }
+  };
+
   const handleApprove = async (expenseId) => {
     try {
       await api.put(`/expenses/${expenseId}/approve`);
@@ -293,7 +318,37 @@ export default function Expenses({ user }) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{t('form.category')}</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">{t('form.category')}</label>
+                  {canManageCategories && (
+                    <button
+                      type="button"
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      onClick={() => setShowAddCategory((prev) => !prev)}
+                    >
+                      {showAddCategory ? t('form.cancelNewCategory') : t('form.addNewCategory')}
+                    </button>
+                  )}
+                </div>
+                {showAddCategory && canManageCategories && (
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="input-field"
+                      placeholder={t('form.newCategoryPlaceholder')}
+                    />
+                    <button
+                      type="button"
+                      disabled={addingCategory || !newCategory.trim()}
+                      onClick={handleAddCategory}
+                      className="btn-primary text-sm px-3 disabled:opacity-50"
+                    >
+                      {t('form.addCategoryButton')}
+                    </button>
+                  </div>
+                )}
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}

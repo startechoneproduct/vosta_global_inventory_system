@@ -13,7 +13,7 @@ const { notifyStoreLeadership } = require('../utils/notify.js');
 
 const router = express.Router();
 
-const canRecordProduction = authorize('manager', 'accountant');
+const canRecordProduction = authorize('owner', 'general_manager', 'manager', 'accountant');
 
 async function requireFountainStore(req, res, next) {
   try {

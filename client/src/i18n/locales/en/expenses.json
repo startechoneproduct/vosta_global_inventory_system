@@ -9,6 +9,10 @@
   "form": {
     "category": "Category",
     "selectCategory": "Select Category",
+    "addNewCategory": "+ Add category",
+    "cancelNewCategory": "Cancel",
+    "newCategoryPlaceholder": "New category name",
+    "addCategoryButton": "Add",
     "amount": "Amount (₦)",
     "amountPlaceholder": "0.00",
     "description": "Description",
@@ -36,7 +40,8 @@
     "expenseRecordedStatus": "Expense recorded. Status: {{status}}",
     "expenseApproved": "Expense approved",
     "failedToLoadExpenses": "Failed to load expenses",
-    "failedToLoadAnalytics": "Failed to load expense analytics"
+    "failedToLoadAnalytics": "Failed to load expense analytics",
+    "categoryAdded": "Category added"
   },
   "overview": {
     "periods": {
